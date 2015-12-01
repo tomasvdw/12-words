@@ -1,0 +1,34 @@
+
+
+form { padding: 1em; border-radius: 5px;}
+textarea { width: 100%; }
+pre { font-size: 120%; padding: 5px; margin-top: 2px;
+      white-space: pre-wrap; }
+h2 {margin: 0;}
+header { max-width: 78ch; margin:auto; }
+nav ul li { padding: 4px 0; width: 25%; display:inline-block; 
+  font-family: monospace; font-size: 120%; }
+
+form { display: none; }
+
+.put form.put { display: block; }
+
+/* colors */
+li.put, form.put { background: #eee0bb; }
+.progress { background-color: lightblue; }
+pre { background-color: orange; }
+
+.put .has_list {display: none; }
+.files_selected .has_list {display: block; }
+.uploading .not_uploading { display: none; }
+.is_uploading {display: none; }
+.uploading .is_uploading {display: block; }
+
+
+table td { text-align: right; }
+table td.n { text-align: left; }
+
+.progress td { width: 33%; }
+
+#put_submit { font-size: 140%; }
+

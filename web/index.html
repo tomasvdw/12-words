@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FTE</title>
+
+    <meta   charset="utf-8">
+    <meta   name="viewport" 
+            content="width=device-width, initial-scale=1.0">
+
+    <link   rel="stylesheet" 
+            href="https://writ.cmcenroe.me/1.0.2/writ.min.css">
+    <link   rel="stylesheet" 
+            href="style.css">
+
+    <script src="lib/jquery-1.11.3.min.js"></script>
+    <script src="lib/sha256.js"></script>
+    <script src="lib/zip.js"></script>
+    <script src="lib/deflate.js"></script>
+    <script src="lib/z-worker.js"></script>
+    <script src="words.js"></script>
+
+  </head>
+  <body class="put">
+    <header>
+      <h1>File Transfer Encrypted</h1>
+      <p>Transfers files anywhere secure and private using client-side encryption</p>
+      <nav>
+        <ul>
+          <li class="put"><a href="/put">PUT</a></li
+          ><li class="get" ><a href="/get">GET</a></li
+          ><li class="pay" ><a href="/pay">PAY</a></li
+          ><li class="faq" ><a href="/faq">FAQ</a></li
+          ></ul>
+      </nav>
+    </header>
+
+    <main>
+      <form class="put" 
+            action="#"
+            method="post"
+            enctype="multipart/form-data">
+
+        <p>Select or drop the local files you want to transfer:
+        <p>
+          <input autofocus multiple 
+                 type="file"  
+                 id="put_files" 
+                 name="files" />
+        
+        
+          <table class="has_list" id="put_filelist">
+            <thead>
+               <tr>
+                 <th>Filename
+                 <th>Size
+                 <th>Last modified
+            </thead>
+            <tbody></tbody>
+          </table>
+        <p class="submit has_list not_uploading">
+          <input type="submit" 
+                 id="put_submit"
+                 value="Start Upload" />
+
+        <table class="is_uploading progress">
+          <tr>
+            <td>Encrypting &amp; uploading...</td>
+            <td class="speed"></td>
+            <td class="progress"></td>
+        </table>  
+
+
+        <p class="has_list" >
+            Passphrase:
+        <pre class="has_list"  id="put_passphrase"></pre>
+        <p class="has_list">
+          After uploading the file, you should instruct the receiver to 
+          <a href="/get">https://filetransferencrypted.com/get</a> 
+          and type in the passphrase. The passphrase should be 
+          communicated over a secure channel, for instance:
+          <ul class="has_list">
+            <li>By phone <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
+            <li>By private messaging <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
+            <li>By encrypted email
+            <li>Face-to-face
+          </ul>
+
+
+      </form>
+      <br />
+
+      <form>
+        <h2>Retrieve files</h2>
+        <p>To retrieve files, type the passphrase given on upload:
+        <textarea></textarea>
+        <p>
+          <input type="submit" value="retrieve" />
+      </form>
+    </main>
+    <script src="upload.js"></script>
+  </body>
+</html>

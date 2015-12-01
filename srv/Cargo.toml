@@ -1,0 +1,10 @@
+
+[package]
+name = "filetransferencrypted-srv"
+version = "0.0.1"
+authors = [ "Tomas <tomas@tomasvdw.nl" ]
+
+
+[dependencies]
+hyper = "0.6.15"
+
