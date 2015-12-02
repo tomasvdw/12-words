@@ -1,7 +1,7 @@
 
 
 var WORDCOUNT = 12;
-var COMPRESSION = 0;
+var COMPRESSION = 1;
 var UPLOAD_SIZE = 1024 * 1024;
 var MAX_QUEUE_LEN = 25;
 
@@ -109,6 +109,7 @@ function doUpload(evt) {
   var total_bytes = 0;
   for(var n=0; n < allfiles.length; n++)
       total_bytes += allfiles[n].size;
+  console.log('total_bytes', total_bytes);
 
   function progress(done, total)
   {
@@ -139,7 +140,7 @@ function doUpload(evt) {
                     addfile();               
                 }, 
                 progress, 
-                {level: COMPRESSION}
+                {level: COMPRESSION, version: 45}
             );
         }
     }
