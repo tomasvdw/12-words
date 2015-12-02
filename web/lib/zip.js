@@ -25,7 +25,7 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+zipoptions = {zip64:true};
 (function(obj) {
 	"use strict";
 
@@ -734,6 +734,7 @@
 			add : function(name, reader, onend, onprogress, options) {
 				var header, filename, date;
 				var worker = this._worker;
+                var file_meta;
 
 				function writeHeader(callback) {
 					var data;
@@ -746,38 +747,63 @@
 						offset : datalength,
 						comment : getBytes(encodeUTF8(options.comment || ""))
 					};
-					header.view.setUint32(0, 0x14000808);
+                    file_meta = files[name];
+					header.view.setUint32(0, 0x14000800);
 					if (options.version)
 						header.view.setUint8(0, options.version);
 					if (!dontDeflate && options.level !== 0 && !options.directory)
+                    {
 						header.view.setUint16(4, 0x0800);
+                    }
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
 					header.view.setUint16(22, filename.length, true);
-					data = getDataHelper(30 + filename.length);
-					data.view.setUint32(0, 0x504b0304);
-					data.array.set(header.array, 4);
-					data.array.set(filename, 30);
+
+                    data = getDataHelper(30 + filename.length);
+                    data.array.set(header.array, 4);
+                    data.array.set(filename, 30);
+                    data.view.setUint32(0, 0x504b0304);
 					datalength += data.array.length;
 					writer.writeUint8Array(data.array, callback, onwriteerror);
 				}
 
 				function writeFooter(compressedLength, crc32) {
-					var footer = getDataHelper(16);
 					datalength += compressedLength || 0;
+                    var footer_len;
+                    if (zipoptions.zip64)
+                        footer_len=24;
+                    else
+                        footer_len=16;
+                    var footer = getDataHelper(footer_len);
 					footer.view.setUint32(0, 0x504b0708);
 					if (typeof crc32 != "undefined") {
 						header.view.setUint32(10, crc32, true);
 						footer.view.setUint32(4, crc32, true);
 					}
 					if (reader) {
-						footer.view.setUint32(8, compressedLength, true);
-						header.view.setUint32(14, compressedLength, true);
-						footer.view.setUint32(12, reader.size, true);
-						header.view.setUint32(18, reader.size, true);
+                        
+                        if (zipoptions.zip64)
+                        {
+                            footer.view.setUint32(8, compressedLength & 0xFFFFFFFF, true);
+                            footer.view.setUint32(12, (compressedLength/0x100000000) & 0xFFFFFFFF, true);
+                            footer.view.setUint32(16, reader.size & 0xFFFFFFFF, true);
+                            footer.view.setUint32(20, (reader.size/0x100000000) & 0xFFFFFFFF, true);
+                            header.view.setUint32(14, 0xFFFFFFFF, true);
+                            header.view.setUint32(18, 0xFFFFFFFF, true);
+                            file_meta.compressedSize = compressedLength;
+                            file_meta.uncompressedSize = reader.size;
+                            console.log('footer', file_meta.compressedSize);
+                        }
+                        else
+                        {
+                            header.view.setUint32(14, compressedLength, true);
+                            header.view.setUint32(18, reader.size, true);
+                            footer.view.setUint32(8, compressedLength, true);
+                            footer.view.setUint32(12, reader.size, true);
+                        }
 					}
 					writer.writeUint8Array(footer.array, function() {
-						datalength += 16;
+						datalength += footer_len;
 						onend();
 					}, onwriteerror);
 				}
@@ -815,14 +841,25 @@
 					this._worker = null;
 				}
 
-				var data, length = 0, index = 0, indexFilename, file;
+				var data, cd_length = 0, index = 0, indexFilename, file;
 				for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
 					file = files[filenames[indexFilename]];
-					length += 46 + file.filename.length + file.comment.length;
+                    file.comment = ''; //disabled;
+					cd_length += 46 + file.filename.length + file.comment.length;
+                    if (zipoptions.zip64)
+                        cd_length += 32;
 				}
-				data = getDataHelper(length + 22);
+                var end_of_cd_length = 22;
+                var zip64_length = 0;
+                if (zipoptions.zip64)
+                    zip64_length = 20 + 44 + 12;
+
+				data = getDataHelper(cd_length + zip64_length + 
+                        end_of_cd_length);
 				for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
+                    // central directory structure
 					file = files[filenames[indexFilename]];
+                    console.log('CDS_FILE', file);
 					data.view.setUint32(index, 0x504b0102);
 					data.view.setUint16(index + 4, 0x1400);
 					data.array.set(file.headerArray, index + 6);
@@ -831,14 +868,83 @@
 						data.view.setUint8(index + 38, 0x10);
 					data.view.setUint32(index + 42, file.offset, true);
 					data.array.set(file.filename, index + 46);
-					data.array.set(file.comment, index + 46 + file.filename.length);
+					//data.array.set(file.comment, index + 46 + file.filename.length);
+                    if (zipoptions.zip64)
+                    {
+                        data.view.setUint32(index + 42, 0xFFFFFFFF, true); // no fle offset
+
+                        data.view.setUint16(index + 30, 32, true);
+                        var i = index + 46 + file.filename.length;
+                        data.view.setUint16(i, 0x0001, true); // extra block ZIP64
+                        data.view.setUint16(i+2, 28, true); //length
+                        data.view.setUint32(i+4, file.uncompressedSize & 0xFFFFFFFF, true); //length
+                        console.log('file.uncompressedSize b1', file.uncompessedSize & 0xFFFFFFFF);
+                        console.log('file.uncompressedSize b1', (file.uncompessedSize / 0x100000000) & 0xFFFFFFFF);
+                        data.view.setUint32(i+8, (file.uncompressedSize/0x100000000) & 0xFFFFFFFF, true); //length
+                        data.view.setUint32(i+12, file.compressedSize & 0xFFFFFFFF, true); //length
+                        data.view.setUint32(i+16, (file.compressedSize/0x100000000) & 0xFFFFFFFF, true); //length
+                        data.view.setUint32(i+20, file.offset & 0xFFFFFFFF, true); //length
+                        data.view.setUint32(i+24, (file.offset/0x100000000) & 0xFFFFFFFF, true); //length
+                        data.view.setUint32(i+28, 0x1, true); //disk#
+
+                        index += 32;
+                    }
 					index += 46 + file.filename.length + file.comment.length;
 				}
-				data.view.setUint32(index, 0x504b0506);
-				data.view.setUint16(index + 8, filenames.length, true);
-				data.view.setUint16(index + 10, filenames.length, true);
-				data.view.setUint32(index + 12, length, true);
-				data.view.setUint32(index + 16, datalength, true);
+                if (zipoptions.zip64)
+                {
+                    var offset_zip64_end_of_cd = datalength + index;
+                    
+                    // zip64 end of cd 
+                    data.view.setUint32(index, 0x504b0606);
+                    data.view.setUint32(index + 4, 44, true); // size of this
+                    data.view.setUint32(index + 8, 0, true); //size of this
+                    data.view.setUint16(index + 12, 51, true); // version 
+                    data.view.setUint16(index + 14, 51, true); // min version 
+                    data.view.setUint32(index + 16, 0, true); // disk #
+                    data.view.setUint32(index + 20, 0, true); // disk #
+                    data.view.setUint32(index + 24, filenames.length, true); // file count
+                    data.view.setUint32(index + 28, 0, true);
+                    data.view.setUint32(index + 32, filenames.length, true); //file count
+                    data.view.setUint32(index + 36, 0, true);
+                    data.view.setUint32(index + 40, cd_length, true); 
+                    data.view.setUint32(index + 44, 0, true);
+
+                    data.view.setUint32(index + 48, datalength % 0xFFFFFFFF, true); 
+                    data.view.setUint32(index + 52, (datalength /0x100000000) & 0xFFFFFFFF, true);
+
+                    index += 12+44;
+                    // zip64 end of cd locator
+                    data.view.setUint32(index, 0x504b0607);
+                    data.view.setUint32(index + 4, 0x00000000);
+                    data.view.setUint32(index + 8,
+                            offset_zip64_end_of_cd & 0xFFFFFFFF, true);
+                    data.view.setUint32(index + 12, 
+                        (offset_zip64_end_of_cd/0x100000000) & 0xFFFFFFFF, true);
+                    data.view.setUint32(index + 16, 0x1, true);
+                    index += 20;
+
+                    
+                    // end of central direcory record
+                    data.view.setUint32(index, 0x504b0506);
+                    data.view.setUint16(index + 4, 0xFFFF);
+                    data.view.setUint16(index + 6, 0xFFFF);
+                    data.view.setUint16(index + 8, 0xFFFF, true);
+                    data.view.setUint16(index + 10, 0xFFFF, true);
+                    data.view.setUint32(index + 12, 0xFFFFFFFF, true);
+                    data.view.setUint32(index + 16, 0xFFFFFFFF, true);
+                    
+                }
+                else
+                {
+                    // end of central direcory record
+                    data.view.setUint32(index, 0x504b0506);
+                    data.view.setUint16(index + 8, filenames.length, true);
+                    data.view.setUint16(index + 10, filenames.length, true);
+                    data.view.setUint32(index + 12, cd_length, true);
+                    data.view.setUint32(index + 16, datalength, true);
+                }
+
 				writer.writeUint8Array(data.array, function() {
 					writer.getData(callback);
 				}, onwriteerror);
@@ -964,3 +1070,5 @@
 	};
 
 })(this);
+
+
