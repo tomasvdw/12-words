@@ -25,8 +25,12 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
-zipoptions = {zip64:true, aes:false};
+versionmade = 51;
+versionneeded = 20;
 
+zipoptions = {zip64:true, aes:true};
+if (zipoptions.zip64) versionneeded = 45;
+if (zipoptions.aes) versionneeded = 51;
 (function(obj) {
   "use strict";
 
@@ -39,7 +43,7 @@ zipoptions = {zip64:true, aes:false};
   var ERR_WRITE_DATA = "Error while writing file data.";
   var ERR_READ_DATA = "Error while reading file data.";
   var ERR_DUPLICATED_NAME = "File already exists.";
-  var CHUNK_SIZE = 512 * 1024;
+  var CHUNK_SIZE = 5120 * 1024;
 
   var TEXT_PLAIN = "text/plain";
 
@@ -749,18 +753,18 @@ zipoptions = {zip64:true, aes:false};
             comment : getBytes(encodeUTF8(options.comment || ""))
           };
           file_meta = files[name];
-          header.view.setUint16(0, 51, true); // version needed
+          header.view.setUint16(0, versionneeded, true); // version needed
           if (zipoptions.aes)
-            header.view.setUint16(2, 0x0800); // flags
+            header.view.setUint16(2, 0x0908); // flags
           else
-            header.view.setUint16(2, 0x0900); // flags 
+            header.view.setUint16(2, 0x0808); // flags 
           // compression
           if (zipoptions.aes)
-            header.view.setUint16(4, 99);
+            header.view.setUint16(4, 99, true);
           else if (!dontDeflate && options.level !== 0 && !options.directory)
-            header.view.setUint16(4, 0);
+            header.view.setUint16(4, 8, true);
           else
-            header.view.setUint16(4, 0);
+            header.view.setUint16(4, 0,true);
 
           header.view.setUint16(6, 
               (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
@@ -788,7 +792,10 @@ zipoptions = {zip64:true, aes:false};
             data.view.setUint16(i+4, 1, true); //crc
             data.view.setUint16(i+6, 0x4541, true);
             data.view.setUint8 (i+8, 3, true); // 256-bits
-            data.view.setUint16(i+9, 8, true); // Deflate
+            if (!dontDeflate && options.level !== 0 && !options.directory)
+                data.view.setUint16(i+9, 8, true); // Deflate
+            else
+                data.view.setUint16(i+9, 0, true); // Deflate
           }
 
           data.view.setUint32(0, 0x504b0304);
@@ -821,7 +828,7 @@ zipoptions = {zip64:true, aes:false};
               header.view.setUint32(18, 0xFFFFFFFF, true);
               file_meta.compressedSize = compressedLength;
               file_meta.uncompressedSize = reader.size;
-              console.log('footer', file_meta.compressedSize);
+              //console.log('footer', file_meta.compressedSize);
             }
             else
             {
@@ -849,17 +856,25 @@ zipoptions = {zip64:true, aes:false};
           filename = getBytes(encodeUTF8(name));
           filenames.push(name);
           writeHeader(function() {
+            var wr = writer;
+            var aesFooter = writeFooter;
+            if (zipoptions.aes)
+            {
+              wr = new AesWriter(writer);
+              aesFooter = function(length,crc) {
+                console.log('aesfooter');
+                console.log(wr);
+                wr.finalize();
+                console.log('l,crc=', length,crc);
+                writeFooter(length + 2 + 10 + 16,crc);
+              }
+            }
             if (reader)
               if (dontDeflate || options.level === 0)
-                copy(worker, deflateSN++, reader, writer, 0, reader.size, true, writeFooter, onprogress, onreaderror, onwriteerror);
+                copy(worker, deflateSN++, reader, wr, 0, reader.size, true, aesFooter, onprogress, onreaderror, onwriteerror);
               else
               {
-                var wr = writer;
-                if (zipoptions.aes)
-                {
-                  wr = new AesWriter(wr);
-                }
-                deflate(worker, deflateSN++, reader, wr, options.level, writeFooter, onprogress, onreaderror, onwriteerror);
+                deflate(worker, deflateSN++, reader, wr, options.level, aesFooter, onprogress, onreaderror, onwriteerror);
               }
             else
               writeFooter();
@@ -897,9 +912,8 @@ zipoptions = {zip64:true, aes:false};
         for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
           // central directory structure
           file = files[filenames[indexFilename]];
-          console.log('CDS_FILE', file);
           data.view.setUint32(index, 0x504b0102);
-          data.view.setUint16(index + 4, 0x1400);
+          data.view.setUint16(index + 4, versionmade, true);
           data.array.set(file.headerArray, index + 6);
           data.view.setUint16(index + 32, file.comment.length, true);
           if (file.directory)
@@ -908,13 +922,22 @@ zipoptions = {zip64:true, aes:false};
           data.array.set(file.filename, index + 46);
           //data.array.set(file.comment, index + 46 + file.filename.length);
           //
+          var extra_len = 0;
+          if (zipoptions.zip64) extra_len += 32;
+          if (zipoptions.aes) extra_len += 11;
+
+          data.view.setUint16(index + 30, extra_len, true);
 
           if (zipoptions.zip64)
           {
             data.view.setUint32(index + 42, 0xFFFFFFFF, true); // no fle offset
 
-            data.view.setUint16(index + 30, 32, true);
-            var i = index + 46 + file.filename.length;
+          }
+
+          index += 46 + file.filename.length;
+          if (zipoptions.zip64)
+          {
+            var i = index;
             data.view.setUint16(i, 0x0001, true); // extra block ZIP64
             data.view.setUint16(i+2, 28, true); //length
             data.view.setUint32(i+4, file.uncompressedSize & 0xFFFFFFFF, true); //length
@@ -940,7 +963,6 @@ zipoptions = {zip64:true, aes:false};
             data.view.setUint16(i+9, 8, true); // Deflate
             index += 11;
           }
-          index += 46 + file.filename.length + file.comment.length;
         }
         if (zipoptions.zip64)
         {
@@ -978,13 +1000,21 @@ zipoptions = {zip64:true, aes:false};
 
           // end of central direcory record
           data.view.setUint32(index, 0x504b0506);
-          data.view.setUint16(index + 4, 0xFFFF);
-          data.view.setUint16(index + 6, 0xFFFF);
+          data.view.setUint16(index + 8, filenames.length, true);
+          data.view.setUint16(index + 10, filenames.length, true);
+          data.view.setUint32(index + 12, cd_length, true);
+          data.view.setUint32(index + 16, datalength, true);
+          
+          // end of central direcory record
+          data.view.setUint32(index, 0x504b0506);
+          //data.view.setUint16(index + 4, 0xFFFF);
+          //data.view.setUint16(index + 6, 0xFFFF);
           data.view.setUint16(index + 8, 0xFFFF, true);
           data.view.setUint16(index + 10, 0xFFFF, true);
+          /*
           data.view.setUint32(index + 12, 0xFFFFFFFF, true);
           data.view.setUint32(index + 16, 0xFFFFFFFF, true);
-
+            */
         }
         else
         {

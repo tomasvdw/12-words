@@ -5,37 +5,20 @@ var COMPRESSION = 1;
 var UPLOAD_SIZE = 1024 * 1024;
 var MAX_QUEUE_LEN = 25;
 
-/* Generic initialization */
-$(function() {
-    
-  // check some browser support
-  if (typeof($('input[type="file"]')[0].files) === 'undefined' 
-      || !window.Worker
-      || !window.Uint8Array
-      || !window.crypto)
-  {
-    $('body').html('<p>Your browser is too old for this site.' +
-        'Please update your browser. Support is needed for ' +
-        'Webworkers, File API and Typed Arrays and crypto.');
-    return;
-  }
-
-  zip.workerScriptsPath = 'lib/';
-  /*
-   * use asm.js. seems unstable
-   zip.workerScripts = {
-      deflater: ['lib/z-worker.js', 'lib/zlib.js', 'lib/codecs.js'],
-  };*/
-
-  handleFileSelect(); // may have files remembered
-
-  generatePassPhrase();
-})
-
+var upload_state = 
+{
+    started: 0,
+    total_bytes: 0,
+    compressed: 0,
+    encrypted: 0,
+    uploaded: 0,
+}
 
 // create filename from passphrase
 function getName(phrase) {
-  return '/f/'+CryptoJS.SHA256(phrase) + '.zip';
+   var md = forge.md.sha256.create();
+   md.update(phrase);
+   return '/f/'+md.digest().toHex()+ '.zip';
 }
 
 // create and show cryptographically secure phrase
@@ -51,15 +34,23 @@ function generatePassPhrase() {
 }
 
 // human readable size
+function rn(r)
+{
+  r = ''+Math.round(r*10)/10;
+  if (r.indexOf('.')==-1)
+      return r +'.0';
+  else
+      return r;
+}
 function formatSize(s) {
   if (s < 1024)
-    return s +' B';
+    return Math.round(s) +' B';
   else if (s < 1024 * 1024)
-    return Math.round(s/ (102.4)) /10 + ' KB';
+    return rn(s/1024) + ' KB';
   else if (s < 1024 * 1024 * 1024)
-    return Math.round(s/ (1024 * 102.4)) /10 + ' MB';
+    return rn(s/(1024*1024)) + ' MB';
   else
-    return Math.round(s/ (1024 *1024 * 102.4)) /10 + ' GB';
+    return rn(s/(1024*1024*1024))+ ' GB';
 }
 
 /* Updates the table of files after a selection 
@@ -77,8 +68,8 @@ function handleFileSelect(evt) {
     for (var i = 0, f; f = allfiles[i]; i++) {
       var row = '<tr>'
         + '<td class="n">' + f.name
-        + '<td>' + formatSize(f.size)
-        + '<td>' + f.lastModifiedDate.toLocaleString();
+        + '<td class="s">' + formatSize(f.size)
+        + '<td class="s">' + f.lastModifiedDate.toLocaleString();
 
       total += f.size;
       if (f.lastModifiedDate > last)
@@ -88,7 +79,7 @@ function handleFileSelect(evt) {
     var foot = '';
     if (output.length > 1)
     {
-        foot = '<tr><th>Total<th>' + formatSize(total) + '<th>' + 
+        foot = '<tr><th>Total<th class="s">' + formatSize(total) + '<th class="s">' + 
             last.toLocaleString();
     }
     $('#put_filelist tbody').html(output.join('')+foot);
@@ -106,18 +97,14 @@ function doUpload(evt) {
   $('body').addClass('uploading');
   var allfiles = $.makeArray($('#put_files')[0].files);
   var bytes_done = 0;
-  var total_bytes = 0;
+
+  upload_state.started = new Date();
   for(var n=0; n < allfiles.length; n++)
-      total_bytes += allfiles[n].size;
-  console.log('total_bytes', total_bytes);
+      upload_state.total_bytes += allfiles[n].size;
 
-  function progress(done, total)
+  function progress(done, total, xx)
   {
-      var progress = 100 * (bytes_done + done) / total_bytes;
-
-      // can't be done while still uploading
-      if (progress > 99.9) progress = 99.9;
-      $('td.progress').text(Math.round(progress * 10)/10 + '%');
+      upload_state.compressed = bytes_done + done;
   }
 
   function complete() {
@@ -140,7 +127,7 @@ function doUpload(evt) {
                     addfile();               
                 }, 
                 progress, 
-                {level: COMPRESSION, version: 45}
+                {level: COMPRESSION}
             );
         }
     }
@@ -149,16 +136,57 @@ function doUpload(evt) {
 }
 
 
+function updateProgress(state)
+{
+    var ratio = (upload_state.compressed/upload_state.encrypted);
+    var progress = (upload_state.uploaded * ratio) 
+        / upload_state.total_bytes;
+
+    var time_taken = (new Date() - upload_state.started ) /1000;
+    var speed = upload_state.total_bytes * progress / time_taken;
+
+    var time_total = time_taken / progress;
+    var eta = time_total - time_taken;
+    if (progress == 0 | time_taken == 0) return;
+
+    console.log(
+            'Uploading ', upload_state.uploaded, 
+            'Compressed ', upload_state.compressed, 
+            'Encrypted ', upload_state.encrypted, 
+            'Progress', progress * 100,
+            'ETA', eta,
+            'Speed', formatSize(speed)+'/s',
+            'queue', upload_state.queue_length);
+
+    $('.progress .speed').text(formatSize(speed)+'/s');
+    $('.progress .progr').text(rn(progress*100) + ' %');
+
+    if (eta < 240)
+        eta = Math.round(eta) + ' s';
+    else if (eta < 60 * 120)
+        eta = Math.round(eta/60) + 'm';
+    else
+        eta = Math.round(eta/3600) + 'h';
+    $('.progress .eta').text(eta);
+
+    var p1 = (progress*100);
+    var p2 = (progress*100)+3;
+    if (p2>100) p2 = 100;
+    $('table.progress').css('background', 'linear-gradient(to right, #b8d5d9 0%,#b8d5d9 '+p1+'%,#c8e5e9 '+p2+'%, #ffffff '+p2+'%,#ffffff 100%)');
+}
+
+function uploadDone() {
+  $('body').addClass('uploading_done');
+}
+
 // Handler passed to zip.js
 // that will upload the zipped chunks of data to the server
 function UploadWriter(contentType) {
     var that = this, data = "", pending = "";
-    var zipped = 0;
-    var uploaded = 0;
     var uploadrq;
     var dataqueue = [];
+    var doneCalled = false;
     var n=0;
-    var started = new Date();
     var name = getName($('#put_passphrase').text());
 
     function init(callback) {
@@ -172,21 +200,27 @@ function UploadWriter(contentType) {
         if (uploadrq)
             return; // still busy
         if (dataqueue.length === 0)
+        {
+            if (doneCalled)
+                uploadDone();
             return; // nothing to do
+        }
 
         uploadrq = new XMLHttpRequest();
         uploadrq.open('PUT', name);
         var current = dataqueue.shift();
         var current_length = current.length;
+        uploadrq.overrideMimeType('text/plain');
         uploadrq.send(current);
         uploadrq.onreadystatechange = function() {
             if (uploadrq.readyState == XMLHttpRequest.DONE)
             {
-                console.log('done');
+
                 uploadrq = 0;
-                uploaded += current_length;
-                console.log('Uploading; ', zipped, 
-                            uploaded, dataqueue.length);
+                upload_state.uploaded += current_length;
+                upload_state.queue_length = dataqueue.length;
+                updateProgress(upload_state);
+
                 trigger_upload();
             }
         }
@@ -194,15 +228,11 @@ function UploadWriter(contentType) {
     }
 
     function writeUint8Array(array, callback) {
-        //console.log('Uploadwriter.writeUint8Array', array);
+
+        upload_state.encrypted += array.length;
+
         if (array.length > 0)
         {
-            zipped += array.length;
-            if (++n % 10 == 0)
-            {
-                var sp = zipped / ((new Date() - started)/1000);
-                $('.speed').text(formatSize(sp)+'/s');
-            }
             dataqueue.push(array);
             trigger_upload();
         }
@@ -217,8 +247,8 @@ function UploadWriter(contentType) {
     }
 
     function getData(callback) {
-        console.log('Uploadwriter.getdata', callback);
         callback('NA');
+        doneCalled = true;
     }
 
     that.init = init;

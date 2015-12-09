@@ -1,6 +1,6 @@
 
 
-form { padding: 1em; border-radius: 5px;}
+form { padding: 1em; }
 textarea { width: 100%; }
 pre { font-size: 120%; padding: 5px; margin-top: 2px;
       white-space: pre-wrap; }
@@ -8,27 +8,56 @@ h2 {margin: 0;}
 header { max-width: 78ch; margin:auto; }
 nav ul li { padding: 4px 0; width: 25%; display:inline-block; 
   font-family: monospace; font-size: 120%; }
-
+nav li a { display: inline-block; width:100%; }
 form { display: none; }
+
+.s { font-family: monospace; }
 
 .put form.put { display: block; }
 
 /* colors */
-li.put, form.put { background: #eee0bb; }
-.progress { background-color: lightblue; }
-pre { background-color: orange; }
+li.put, form.put { background: #b8d5d9; }
+li.get, form.get { background: #b1f2ae; }
+li.pay, form.pay { background: #f2a7b5; }
+li.faq, form.faq { background: #f2f0d0; }
+A.progress { background-color: lightblue; }
+pre,textarea { background-color: orange; }
 
-.put .has_list {display: none; }
-.files_selected .has_list {display: block; }
-.uploading .not_uploading { display: none; }
-.is_uploading {display: none; }
-.uploading .is_uploading {display: block; }
+textarea { font-size:130%; font-family: monospace; }
 
+/* PUT screen phases */
+.uploading      #put_selectfiles  { display: none; }
+                #put_filelist     { display: none; }
+.files_selected #put_filelist     { display: inherit; }
 
+                #put_doupload     { display: none; }
+.files_selected #put_doupload     { display: inherit; }
+.uploading      #put_doupload     { display: none; }
+.uploading_done #put_doupload     { display: none; }
+
+                #put_progress     { display: none; }
+.uploading      #put_progress     { display: inherit; }
+.uploading_done #put_progress     { display: none; }
+
+                #put_retrieveinfo { display: none; }
+.files_selected #put_retrieveinfo { display: inherit; }
+.uploading      #put_retrieveinfo { display: inherit; }
+.uploading_done #put_retrieveinfo { display: inherit; }
+
+                #put_uploaddone   { display: none; }
+.uploading_done #put_uploaddone   { display: inherit; }
+
+table, tbody {width: 100%; }
 table td { text-align: right; }
-table td.n { text-align: left; }
+table td.s, th.s { text-align: right; font-family: monospace; font-size:80%; }
+table.progress td { width: 20%; }
+table td.n { width: 40%; text-align: left; }
 
-.progress td { width: 33%; }
+.progress { background-color: white; }
 
 #put_submit { font-size: 140%; }
+
+
+dd { padding: 0;}
+dt { font-weight: bold; }
 

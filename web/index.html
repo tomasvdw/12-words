@@ -13,13 +13,13 @@
             href="style.css">
 
     <script src="lib/jquery-1.11.3.min.js"></script>
+
     <script src="lib/sha256.js"></script>
     <script src="lib/zip.js"></script>
     <script src="lib/deflate.js"></script>
     <script src="lib/z-worker.js"></script>
     <script src="aes-writer.js"></script>
-    <script src="lib/aes.js"></script>
-    <script src="lib/lib-typedarrays-min.js"></script>
+    <script src="lib/forge.bundle.js"></script>
     <script src="words.js"></script>
 
   </head>
@@ -43,15 +43,19 @@
             method="post"
             enctype="multipart/form-data">
 
+        <div id="put_selectfiles">
         <p>Select or drop the local files you want to transfer:
         <p>
           <input autofocus multiple 
+                 autocomplete="off"
                  type="file"  
                  id="put_files" 
                  name="files" />
+         </div>
         
         
-          <table class="has_list" id="put_filelist">
+         <div id="put_filelist">
+          <table>
             <thead>
                <tr>
                  <th>Filename
@@ -60,46 +64,72 @@
             </thead>
             <tbody></tbody>
           </table>
-        <p class="submit has_list not_uploading">
+          </div>
+          
+          <p id="put_doupload">
           <input type="submit" 
                  id="put_submit"
                  value="Start Upload" />
 
-        <table class="is_uploading progress">
+        <div id="put_progress">
+        <table class="progress">
           <tr>
-            <td>Encrypting &amp; uploading...</td>
-            <td class="speed"></td>
-            <td class="progress"></td>
+            <td class="n">Encrypting &amp; uploading...</td>
+            <td class="s speed"></td>
+            <td class="s progr"></td>
+            <td class="s eta"></td>
         </table>  
+        </div>
 
+        <p id="put_uploaddone">
+          Upload completed
+        </p>
 
-        <p class="has_list" >
+        <div id="put_retrieveinfo">
+        <p>
             Passphrase:
-        <pre class="has_list"  id="put_passphrase"></pre>
-        <p class="has_list">
+        <pre id="put_passphrase"></pre>
+        <p>
           After uploading the file, you should instruct the receiver to 
           <a href="/get">https://filetransferencrypted.com/get</a> 
           and type in the passphrase. The passphrase should be 
           communicated over a secure channel, for instance:
-          <ul class="has_list">
+          <ul>
             <li>By phone <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
             <li>By private messaging <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
             <li>By encrypted email
             <li>Face-to-face
           </ul>
+        </div>
 
 
       </form>
-      <br />
 
-      <form>
-        <h2>Retrieve files</h2>
+      <form class="get">
         <p>To retrieve files, type the passphrase given on upload:
-        <textarea></textarea>
+        <textarea id="get_passphrase" autocomplete="off" autofocus></textarea>
         <p>
           <input type="submit" value="retrieve" />
       </form>
+      <form class="pay">
+        <p>You must pay for the service after transferring your files. An exception is when you 
+        <ul>
+          <li>are only trying it out once or twice AND
+          <li>are only tranferring small files AND
+          <li>are using it non-commercially
+        </ul>
+        <p>We suggest 3mBTC/100MB
+      </form>
+      <form class="faq">
+        <dl>
+          <dt>What is this?
+          <dd>This is a service to transfer files between two computers. The computers need only an outgoing HTTPS connection.
+              
+        </dl>
+        <p>TODO
+      </form>
     </main>
     <script src="upload.js"></script>
+    <script src="ui.js"></script>
   </body>
 </html>

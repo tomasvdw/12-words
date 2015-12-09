@@ -39,6 +39,7 @@ fn handle_put(mut req: Request, res: Response, filename: &str) {
 
     let mut writer = BufWriter::new(f);
     io::copy(&mut req, &mut writer).unwrap();
+    res.send(b"OK").unwrap();
 }
 
 /* GET a zip file */
@@ -48,6 +49,7 @@ fn handle_get(_: Request, res: Response, filename: &str) {
     let mut reader = BufReader::new(f);
 
     io::copy(&mut reader, &mut res.start().unwrap()).unwrap();
+
 }
 
 /* Main request dispatcher */
