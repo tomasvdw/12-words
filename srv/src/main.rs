@@ -8,10 +8,12 @@ extern crate hyper;
 
 use hyper::server::{Request, Response};
 use hyper::method::*;
+use hyper::status::*;
 use std::fs::File;
+use std::fs::OpenOptions;
+use std::fs;
 use std::io;
 use std::io::*;
-use std::fs::OpenOptions;
 
 const WEB_PATH : &'static str = "../web";
 const ZIP_PATH : &'static str = "../data/";
@@ -29,7 +31,7 @@ fn handle_file(_: Request, res: Response, filename: &str) {
 /* PUT a zip file */
 fn handle_put(mut req: Request, res: Response, filename: &str) {
     let path       = &(ZIP_PATH.to_string() + filename);
-    println!("Incoming file {}", path);
+    println!("PUT {}", path);
     let f =      OpenOptions::new()
                         .create(true)
                         .write(true)
@@ -43,12 +45,29 @@ fn handle_put(mut req: Request, res: Response, filename: &str) {
 }
 
 /* GET a zip file */
-fn handle_get(_: Request, res: Response, filename: &str) {
+fn handle_get(_: Request, mut res: Response, filename: &str, is_head: bool) {
     let path       = &(ZIP_PATH.to_string() + filename);
-    let f          = File::open(path).unwrap();
-    let mut reader = BufReader::new(f);
 
-    io::copy(&mut reader, &mut res.start().unwrap()).unwrap();
+
+    if is_head {
+      println!("QUERY {}", path);
+      match fs::metadata(path) {
+        Ok(_) => 
+            res.send(b"OK").unwrap(),
+        Err(_) => {
+            *res.status_mut() = StatusCode::NotFound;
+            res.send(b"ERR").unwrap()
+        }
+      }
+    }
+    else
+    {
+        println!("GET {}", path);
+        let f          = File::open(path).unwrap();
+        let mut reader = BufReader::new(f);
+
+        io::copy(&mut reader, &mut res.start().unwrap()).unwrap();
+    }
 
 }
 
@@ -59,6 +78,7 @@ fn main_handler(req: Request, res: Response) {
     let prefix: &str   = if uri.len() <3 { "" } else { &(uri[0..3]) };
     let suffix: &str   = if uri.len() <3 { "" } else { &(uri[3..]) };
     let is_put: bool   = req.method == Method::Put;
+    let is_head: bool   = req.method == Method::Head;
 
     match uri {
         // subpages all goto index
@@ -71,7 +91,7 @@ fn main_handler(req: Request, res: Response) {
 
         // file GET
         _ if prefix== "/f/" 
-          && !is_put             => handle_get(req, res, suffix),
+          && !is_put             => handle_get(req, res, suffix, is_head),
 
         // helper files (js/css)
         _                        => handle_file(req, res, uri)
