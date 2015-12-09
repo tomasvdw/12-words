@@ -57,7 +57,10 @@ table td.n { width: 40%; text-align: left; }
 
 #put_submit { font-size: 140%; }
 
+a { outline: 0; }
 
-dd { padding: 0;}
+dd { padding: 0;margin: 1em 0 2em;}
 dt { font-weight: bold; }
 
+span.btc { font-family: monospace; border: 1px solid black; background: white; padding: 3px 10px;}
+img.btc { display: block; margin: auto; }
