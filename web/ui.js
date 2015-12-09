@@ -50,14 +50,4 @@ $(function() {
     setState();
 })
 
-$(function() {
-    $('form.get').submit(function() {
-
-        var file = getName($('#get_passphrase').val());
-        var directDownload = 
-            $('<a href="' + file + '" download>Direct download</a>');
-        $('form.get').append($('<p>').append(directDownload));
-        return false;
-    })
-})
 

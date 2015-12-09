@@ -47,6 +47,16 @@ textarea { font-size:130%; font-family: monospace; }
                 #put_uploaddone   { display: none; }
 .uploading_done #put_uploaddone   { display: inherit; }
 
+
+/* GET screen phases */
+                #get_notfound     {display: none; }
+.get_notfound   #get_notfound     {display: inherit; }
+
+
+                #get_found        {display: none; }
+.get_found      #get_found        {display: inherit; }
+.get_found      #get_input p      {display: none; }
+
 table, tbody {width: 100%; }
 table td { text-align: right; }
 table td.s, th.s { text-align: right; font-family: monospace; font-size:80%; }
@@ -64,3 +74,6 @@ dt { font-weight: bold; }
 
 span.btc { font-family: monospace; border: 1px solid black; background: white; padding: 3px 10px;}
 img.btc { display: block; margin: auto; }
+ h2 { font-size: 120%; font-weight: bold; line-height: 1em; margin: 1.5em 0 1em;}
+
+li { font-size: 80%; }
