@@ -4,6 +4,11 @@
     <title>FTE</title>
 
     <meta   charset="utf-8">
+
+    <meta   name="description" content="File transfer with client side encryption">
+    <meta   name="keywords" content="Transfer,FTP,Secure,AES,Zip">
+    <meta   name="author" content="Tomas van der Wansem">
+
     <meta   name="viewport" 
             content="width=device-width, initial-scale=1.0">
 
@@ -16,6 +21,8 @@
 
     <script src="lib/zip.js"></script>
     <script src="lib/deflate.js"></script>
+    <script src="lib/zip-ext.js"></script>
+    <script src="lib/mime-types.js"></script>
     <script src="lib/z-worker.js"></script>
     <script src="aes-writer.js"></script>
     <script src="lib/forge.bundle.js"></script>
@@ -25,52 +32,53 @@
   <body class="put">
     <header>
       <h1>File Transfer Encrypted</h1>
-      <p>Transfers files anywhere secure and private using client-side encryption</p>
+      <p>Transfers files anywhere securely and privately using client-side encryption</p>
       <nav>
         <ul>
           <li class="put"><a tabindex="-1" href="/put">PUT</a></li
-          ><li class="get" ><a tabindex="-1" href="/get">GET</a></li
-          ><li class="pay" ><a tabindex="-1" href="/pay">PAY</a></li
-          ><li class="faq" ><a tabindex="-1" href="/faq">FAQ</a></li
+          ><li class="get"><a tabindex="-1" href="/get">GET</a></li
+          ><li class="pay"><a tabindex="-1" href="/pay">PAY</a></li
+          ><li class="faq"><a tabindex="-1" href="/faq">FAQ</a></li
           ></ul>
       </nav>
     </header>
 
     <main>
-      <form class="put" 
-            action="#"
-            method="post"
-            enctype="multipart/form-data">
+    <form class="put" 
+          action="#"
+          method="post"
+          enctype="multipart/form-data">
+      <p class="error"></p>
 
-        <div id="put_selectfiles">
-        <p>Select or drop the local files you want to transfer:
+      <div id="put_selectfiles">
+        <p>Select local files you want to transfer:
         <p>
-          <input autofocus multiple 
-                 autocomplete="off"
-                 type="file"  
-                 id="put_files" 
-                 name="files" />
-         </div>
-        
-        
-         <div id="put_filelist">
-          <table>
-            <thead>
-               <tr>
-                 <th>Filename
-                 <th>Size
-                 <th>Last modified
-            </thead>
-            <tbody></tbody>
-          </table>
-          </div>
-          
-          <p id="put_doupload">
-          <input type="submit" 
-                 id="put_submit"
-                 value="Start Upload" />
+        <input autofocus multiple 
+           autocomplete="off"
+           type="file"  
+           id="put_files" 
+           name="files" />
+      </div>
 
-        <div id="put_progress">
+
+      <div id="put_filelist">
+        <table class="files">
+          <thead>
+            <tr>
+              <th class="n">Filename
+              <th>Size
+              <th>Last modified
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <p id="put_doupload">
+      <input type="submit" 
+             id="put_submit"
+             value="Start Upload" />
+
+      <div id="put_progress">
         <table class="progress">
           <tr>
             <td class="n">Encrypting &amp; uploading...</td>
@@ -78,126 +86,150 @@
             <td class="s progr"></td>
             <td class="s eta"></td>
         </table>  
-        </div>
+      </div>
 
-        <p id="put_uploaddone">
-          Upload completed
-        </p>
+      <p id="put_uploaddone">
+      Upload completed
+      </p>
 
-        <div id="put_retrieveinfo">
+      <div id="put_retrieveinfo">
         <p>
-            Passphrase:
+        Passphrase:
         <pre id="put_passphrase"></pre>
         <p>
-          After uploading the file, you should instruct the receiver to 
-          <a href="/get">https://filetransferencrypted.com/get</a> 
-          and type in the passphrase. The passphrase should be 
-          communicated over a secure channel, for instance:
-          <ul>
-            <li>By phone <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
-            <li>By private messaging <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
-            <li>By encrypted email
-            <li>Face-to-face
-          </ul>
-        </div>
+        After uploading the file, you should instruct the receiver to go to
+        <a href="/get">https://filetransferencrypted.com/get</a> 
+        and type in the passphrase. The passphrase should be 
+        communicated over a secure channel, for instance:
+        <ul>
+          <li>By phone <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
+          <li>By private messaging <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
+          <li>By encrypted email
+          <li>Face-to-face
+        </ul>
+      </div>
 
 
-      </form>
+    </form>
 
-      <form class="get" action="#">
-        <div id="get_input">
-          <p>To retrieve files, type the passphrase given on upload:</p>
-          <textarea id="get_passphrase" autocomplete="off" autofocus></textarea>
+    <form class="get" action="#">
+      <p class="error"></p>
+      <div id="get_input">
+        <p>To retrieve files, type the passphrase given on upload:</p>
+        <textarea id="get_passphrase" autocomplete="off" autofocus></textarea>
+        <p>
+        <input type="submit" value="Find Files" />
+      </div>
+
+      <p id="get_notfound">
+      No files found with this passphrase
+      <div id="get_found">
+        <p>A file was found with this passphrase
+        <h2>Method 1. Direct download</h2>
+        <p>
+        <a id="get_directdownload" href="" download>Encrypted ZIP-file</a>
+        <ul>
+          <li>This requires a ZIP tool that can handle AES-decryption. Most ZIP-tools will work, but Windows Explorer cannot handle this file.</li>
+          <li>You must enter the same passphrase again when asked for a password.
+        </ul>
+
+        <h2>Method 2. Decrypt in browser</h2>
+        <div id="get_decryptbutton">
           <p>
-            <input type="submit" value="Find Files" />
-        </div>
-
-        <p id="get_notfound">
-          No files found with this passphrase
-        <div id="get_found">
-          <p>A file was found with this passphrase
-          <h2>Method 1. Direct download</h2>
-            <p>
-          <a id="get_directdownload" href="" download>Encrypted ZIP-file</a>
-          <ul>
-            <li>This requires a ZIP tool that can handle AES-decryption. Most ZIP-tools will work, but Windows Explorer cannot handle this file.</li>
-            <li>You must enter the same passphrase again when asked for a password.
-          </ul>
-
-          <h2>Method 2. Decrypt in browser</h2>
-            <p>
           <a id="get_decrypt" href="javascript:get_decrypt()">Decrypt files</a>
           <ul>
             <li>This is generally slower and will need enough memory to store the entire files twice.
-            <li>Large files should not be decrypted this way
           </ul>
-
         </div>
-      </form>
-      <form class="pay">
-        <p>If you are transferring only small files for personal use, you can use this service for free.
+        <div id="get_downloading">
+          <table class="progress">
+            <tr>
+              <td class="n">Downloading...</td>
+              <td class="s speed"></td>
+              <td class="s progr"></td>
+              <td class="s eta"></td>
+          </table>  
+        </div>
+        <div id="get_decrypting">
+          <p>Decrypting files...
+          <table class="files">
+            <thead>
+              <tr>
+                <th class="n">Filename
+                <th>Size
+                <th colspan="3">Progress
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="get_decryptiondone">Decryption complete</p>
+
+      </div>
+    </form>
+    <form class="pay">
+      <p>If you are transferring only small files for personal use, you can use this service for free.
+      <p>
+      Otherwise you should pay $1 per upload + $1 per GB. If you like our 
+      service, feel free to donate more.
+
+      <h2>Pay by bitcoin</h2>
+      <p>Bitcoin address: <span class="btc">3JotajtwES8eMbWqaQTv3e7bfbiwFNtNoE</span>
+      <img class="btc" src="data:image/png;base64,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" />
+      <h2>Pay by PayPal</h2>
+      <p>PayPal donation: coming soon...
+    </form>
+    <form class="faq">
+      <dl>
+        <dt>What is this?
+        <dd>This is a service to transfer files between two computers securely using client-side encryption. The computers need only a modern Web Browser and Internet access.
+
+        <dt>What is "client-side encryption"?
+        <dd>Client-side encryption means that the files that you are transferring  are encrypted on your own computer before they are send over the network. 
+
         <p>
-          Otherwise you should pay $1 per upload + $1 per GB. If you like our 
-          service, feel free to donate more.
-        
-          <h2>Pay by bitcoin</h2>
-          <p>Bitcoin address: <span class="btc">3JotajtwES8eMbWqaQTv3e7bfbiwFNtNoE</span>
-          <img class="btc" src="data:image/png;base64,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" />
-          <h2>Pay by PayPal</h2>
-        <p>PayPal donation: coming soon...
-      </form>
-      <form class="faq">
-        <dl>
-          <dt>What is this?
-          <dd>This is a service to transfer files between two computers securely using client-side encryption. The computers need only a modern Web Browser and Internet access.
+        This means the data is secure not only from computers sniffing the network, but also unreadable by us, by our hosting provider or by anyone who can gain access to our servers.
 
-          <dt>What is "client-side encryption"?
-          <dd>Client-side encryption means that the files that you are transferring  are encrypted on your own computer before they are send over the network. 
+        <p>
+        The only way to decrypt the files is using the passphrase which will not be send over the network.
 
-          <p>
-          This means the data is secure not only from computers sniffing the network, but also unreadable by us, by our hosting provider or by anyone who can gain access to our servers.
+        <dt>What is the maximum size of the uploaded files?
+        <dd>
+        The total size of the files may not exceed 500GB after compression. 
+        <p>
+        However, the upload and encryption speed currently make files larger 
+        than a few GB rather painful.
 
-          <p>
-          The only way to decrypt the files is using the passphrase which will not be send over the network.
+        <p>Encryption speed and upload speed will be improved in the near future.
 
-          <dt>What is the maximum size of the uploaded files?
-          <dd>
-             The total size of the files may not exceed 500GB after compression. 
-             <p>
-             However, the upload and encryption speed currently make files larger 
-             than a few GB rather painful.
+        <dt>How secure is it?
+        <dd>
+        The files are encrypted using AES-256 encryption, with a 132-bits (BIP39) random passphrase.
 
-             <p>Encryption speed and upload speed will be improved in the near future.
+        <p>
+        These are high security standards, and cannot be decrypted by any means now, or in the near future.
 
-          <dt>How secure is it?
-          <dd>
-            The files are encrypted using AES-256 encryption, with a 132-bits (BIP39) random passphrase.
-
-            <p>
-            These are high security standards, and cannot be decrypted by any means now, or in the near future.
-
-            <p>Please do not take our word for it, and do your own research.
+        <p>Please do not take our word for it, and do your own research.
 
 
-          <dt>Are the filenames encrypted too?
-          <dd>No. Filenames and sizes are stored unencrypted. Only file content is encrypted.
+        <dt>Are the filenames encrypted too?
+        <dd>No. Filenames and sizes are stored unencrypted. Only file content is encrypted.
 
 
-          <dt>Can the files be modified by an attacker?
-          <dd>If you use the decryption-in-the-browser feature you can be certain 
-            that the files are not modified even if someone were to gain access
-            to our servers.
-            <p>
-            If you use the direct-download feature, and you are transferring 
-            multiple files, you should verify that each file is encrypted.
+        <dt>Can the files be modified by an attacker?
+        <dd>If you use the decryption-in-the-browser feature you can be certain 
+        that the files are not modified even if someone were to gain access
+        to our servers.
+        <p>
+        If you use the direct-download feature, and you are transferring 
+        multiple files, you should verify that each file is encrypted.
 
-            <p>
-            The ZIP-format makes it possible for someone who has gained access to
-            our systems to replace files with unencrypted versions, 
-            and some ZIP-tools do not warn when this happens.
+        <p>
+        The ZIP-format makes it possible for someone who has gained access to
+        our systems to replace files with unencrypted versions, 
+        and some ZIP-tools do not warn when this happens.
 
 
-            <dt>How can trust this service? How do I know the files are really encrypted?
+        <dt>How can trust this service? How do I know the files are really encrypted?
 
         <dd>This service is Open Source, and the source can be found on 
         <a href="https://github.com/tomasvdw/filetransferencrypted">GitHub</a>
@@ -209,13 +241,13 @@
         <dt>I have another question...
         <dd>You can contact us at <a href="mailto:info@filetransferencrypted.com">info@filetransferencrypted.com</a>
         <p>
-          If you find bug, you can report it on 
+        If you find bug, you can report it on 
         <a href="https://github.com/tomasvdw/filetransferencrypted">GitHub</a>
 
 
-              
-        </dl>
-      </form>
+
+      </dl>
+    </form>
     </main>
     <script src="ui.js"></script>
     <script src="put.js"></script>

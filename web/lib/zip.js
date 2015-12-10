@@ -28,7 +28,7 @@
 versionmade = 51;
 versionneeded = 20;
 
-zipoptions = {zip64:true, aes:true};
+zipoptions = {zip64:false, aes:false};
 if (zipoptions.zip64) versionneeded = 45;
 if (zipoptions.aes) versionneeded = 51;
 (function(obj) {

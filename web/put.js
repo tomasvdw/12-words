@@ -1,6 +1,6 @@
 
 
-var WORDCOUNT = 12;
+var WORDCOUNT = 2;
 var COMPRESSION = 1;
 var UPLOAD_SIZE = 1024 * 1024;
 var MAX_QUEUE_LEN = 25;
@@ -79,7 +79,8 @@ function handleFileSelect(evt) {
     var foot = '';
     if (output.length > 1)
     {
-        foot = '<tr><th>Total<th class="s">' + formatSize(total) + '<th class="s">' + 
+        foot = '<tr><th class="n">Total<th class="s">' + 
+            formatSize(total) + '<th class="s">' + 
             last.toLocaleString();
     }
     $('#put_filelist tbody').html(output.join('')+foot);
@@ -142,37 +143,11 @@ function updateProgress(state)
     var progress = (upload_state.uploaded * ratio) 
         / upload_state.total_bytes;
 
-    var time_taken = (new Date() - upload_state.started ) /1000;
-    var speed = upload_state.total_bytes * progress / time_taken;
-
-    var time_total = time_taken / progress;
-    var eta = time_total - time_taken;
-    if (progress == 0 | time_taken == 0) return;
-
-    console.log(
-            'Uploading ', upload_state.uploaded, 
-            'Compressed ', upload_state.compressed, 
-            'Encrypted ', upload_state.encrypted, 
-            'Progress', progress * 100,
-            'ETA', eta,
-            'Speed', formatSize(speed)+'/s',
-            'queue', upload_state.queue_length);
-
-    $('.progress .speed').text(formatSize(speed)+'/s');
-    $('.progress .progr').text(rn(progress*100) + ' %');
-
-    if (eta < 240)
-        eta = Math.round(eta) + ' s';
-    else if (eta < 60 * 120)
-        eta = Math.round(eta/60) + 'm';
-    else
-        eta = Math.round(eta/3600) + 'h';
-    $('.progress .eta').text(eta);
-
-    var p1 = (progress*100);
-    var p2 = (progress*100)+3;
-    if (p2>100) p2 = 100;
-    $('table.progress').css('background', 'linear-gradient(to right, #b8d5d9 0%,#b8d5d9 '+p1+'%,#c8e5e9 '+p2+'%, #ffffff '+p2+'%,#ffffff 100%)');
+    updateProgressTable(
+        $('#put_progress .progress'),
+        upload_state.started,
+        progress,
+        upload_state.total_bytes * progress);
 }
 
 function uploadDone() {

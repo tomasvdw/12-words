@@ -1,7 +1,7 @@
 
 
 form { padding: 1em; }
-textarea { width: 100%; }
+textarea { width: 98%; padding: 5px; }
 pre { font-size: 120%; padding: 5px; margin-top: 2px;
       white-space: pre-wrap; }
 h2 {margin: 0;}
@@ -15,11 +15,17 @@ form { display: none; }
 
 .put form.put { display: block; }
 
+table.files tr { background-color: #a1cd73; }
+table.files th { background-color: #4faa92; }
+
 /* colors */
-li.put, form.put { background: #b8d5d9; }
-li.get, form.get { background: #b1f2ae; }
-li.pay, form.pay { background: #f2a7b5; }
-li.faq, form.faq { background: #f2f0d0; }
+form { background: #b8d5d9; }
+nav li { background: #e8f5f9; }
+.put li.put,
+.get li.get,
+.pay li.pay, 
+.faq li.faq { background: #b8d5d9; }
+
 A.progress { background-color: lightblue; }
 pre,textarea { background-color: orange; }
 
@@ -57,15 +63,30 @@ textarea { font-size:130%; font-family: monospace; }
 .get_found      #get_found        {display: inherit; }
 .get_found      #get_input p      {display: none; }
 
+
+                 #get_downloading   {display: none; }
+.get_downloading #get_downloading   {display: inherit; }
+
+.get_downloading #get_decryptbutton {display: none; }
+.get_decrypting #get_decryptbutton {display: none; }
+
+                #get_decrypting    {display: none; }
+.get_decrypting #get_decrypting    {display: inherit; }
+
+                #get_decryptiondone { display: none; }
+
 table, tbody {width: 100%; }
-table td { text-align: right; }
+table td, th { text-align: right; }
 table td.s, th.s { text-align: right; font-family: monospace; font-size:80%; }
 table.progress td { width: 20%; }
-table td.n { width: 40%; text-align: left; }
+table td.n, th.n { width: 40%; text-align: left; }
 
 .progress { background-color: white; }
 
+.error { dispplay: none; color: red; }
+
 #put_submit { font-size: 140%; }
+#put_uploaddone { font-size: 120%; font-weight: bold; }
 
 a { outline: 0; }
 
@@ -77,3 +98,4 @@ img.btc { display: block; margin: auto; }
  h2 { font-size: 120%; font-weight: bold; line-height: 1em; margin: 1.5em 0 1em;}
 
 li { font-size: 80%; }
+

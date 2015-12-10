@@ -9,6 +9,7 @@ extern crate hyper;
 use hyper::server::{Request, Response};
 use hyper::method::*;
 use hyper::status::*;
+use hyper::header::*;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::fs;
@@ -49,25 +50,31 @@ fn handle_get(_: Request, mut res: Response, filename: &str, is_head: bool) {
     let path       = &(ZIP_PATH.to_string() + filename);
 
 
-    if is_head {
-      println!("QUERY {}", path);
-      match fs::metadata(path) {
-        Ok(_) => 
-            res.send(b"OK").unwrap(),
-        Err(_) => {
-            *res.status_mut() = StatusCode::NotFound;
-            res.send(b"ERR").unwrap()
+  match fs::metadata(path) {
+    Ok(m) => {
+        if is_head {
+          println!("QUERY {} {}", path, m.len());
+          res.headers_mut().set(ContentLength(m.len()));
+          res.headers_mut().remove::<TransferEncoding>();
+          res.start().unwrap();
         }
-      }
-    }
-    else
-    {
-        println!("GET {}", path);
-        let f          = File::open(path).unwrap();
-        let mut reader = BufReader::new(f);
+        else
+        {
+            println!("GET {}", path);
+            let f          = File::open(path).unwrap();
+            let mut reader = BufReader::new(f);
 
-        io::copy(&mut reader, &mut res.start().unwrap()).unwrap();
+            res.headers_mut().set(ContentLength(m.len()));
+            res.headers_mut().remove::<TransferEncoding>();
+
+            io::copy(&mut reader, &mut res.start().unwrap()).unwrap();
+        }
+    },
+    Err(_) => {
+        *res.status_mut() = StatusCode::NotFound;
+        res.send(b"ERR").unwrap()
     }
+  }
 
 }
 
