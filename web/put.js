@@ -1,9 +1,10 @@
 
 
-var WORDCOUNT = 2;
+var WORDCOUNT = 12;
 var COMPRESSION = 1;
 var UPLOAD_SIZE = 1024 * 1024;
 var MAX_QUEUE_LEN = 25;
+
 
 var upload_state = 
 {
@@ -13,6 +14,8 @@ var upload_state =
     encrypted: 0,
     uploaded: 0,
 }
+
+var allfiles = [];
 
 // create filename from passphrase
 function getName(phrase) {
@@ -31,6 +34,11 @@ function generatePassPhrase() {
 
   var phrase = phrase_words.join(' ');
   $('#put_passphrase').text(phrase);
+}
+
+function put_passphrase()
+{
+  return $('#put_passphrase').text();
 }
 
 // human readable size
@@ -56,7 +64,12 @@ function formatSize(s) {
 /* Updates the table of files after a selection 
  * is made */
 function handleFileSelect(evt) {
-    var allfiles = $('#put_files')[0].files;
+    for(var f=0; f < $('#put_files')[0].files.length; f++)
+      allfiles.push($('#put_files')[0].files[f]);
+    updateFileList();
+}
+
+function updateFileList() {
 
     // css to show table et al
     $('form.put').toggleClass('files_selected', allfiles.length>0);
@@ -69,7 +82,8 @@ function handleFileSelect(evt) {
       var row = '<tr>'
         + '<td class="n">' + f.name
         + '<td class="s">' + formatSize(f.size)
-        + '<td class="s">' + f.lastModifiedDate.toLocaleString();
+        + '<td class="s">' + f.lastModifiedDate.toLocaleString()
+        + '<td class="s"><a class="rm" href="javascript:rm('+i+')">X</a>';
 
       total += f.size;
       if (f.lastModifiedDate > last)
@@ -81,9 +95,18 @@ function handleFileSelect(evt) {
     {
         foot = '<tr><th class="n">Total<th class="s">' + 
             formatSize(total) + '<th class="s">' + 
-            last.toLocaleString();
+            last.toLocaleString() + '<th>';
     }
     $('#put_filelist tbody').html(output.join('')+foot);
+
+    if (allfiles.length == 0)
+      $('body').removeClass('files_selected');
+}
+
+function rm(elm)
+{
+  allfiles.splice(elm,1);
+  updateFileList();
 }
 
 $('#put_files').on('change', handleFileSelect);
@@ -96,12 +119,13 @@ $('form.put').on('submit', function() {
 function doUpload(evt) {
 
   $('body').addClass('uploading');
-  var allfiles = $.makeArray($('#put_files')[0].files);
   var bytes_done = 0;
 
   upload_state.started = new Date();
   for(var n=0; n < allfiles.length; n++)
       upload_state.total_bytes += allfiles[n].size;
+
+  zipoptions.zip64 = upload_state.total_bytes > 0xFFFFFFFE;
 
   function progress(done, total, xx)
   {

@@ -86,3 +86,10 @@ function setError(msg) {
   $('form:visible .error').text(msg).show();
 }
 
+$("textarea").keypress(function (e) {
+  if(e.which == 13) {
+    e.preventDefault();
+    $(this).closest('form').submit();
+  }
+});
+

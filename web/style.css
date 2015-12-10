@@ -31,15 +31,20 @@ pre,textarea { background-color: orange; }
 
 textarea { font-size:130%; font-family: monospace; }
 
+thead,tbody,tr { background-attachment:fixed !important; }
+
 /* PUT screen phases */
 .uploading      #put_selectfiles  { display: none; }
                 #put_filelist     { display: none; }
 .files_selected #put_filelist     { display: inherit; }
 
+.files_selected      .reset { display: inherit; }
                 #put_doupload     { display: none; }
 .files_selected #put_doupload     { display: inherit; }
 .uploading      #put_doupload     { display: none; }
 .uploading_done #put_doupload     { display: none; }
+.uploading      .rm     { display: none; }
+.uploading_done .rm     { display: none; }
 
                 #put_progress     { display: none; }
 .uploading      #put_progress     { display: inherit; }
@@ -63,6 +68,7 @@ textarea { font-size:130%; font-family: monospace; }
 .get_found      #get_found        {display: inherit; }
 .get_found      #get_input p      {display: none; }
 
+.get_found      .reset { display: inherit; }
 
                  #get_downloading   {display: none; }
 .get_downloading #get_downloading   {display: inherit; }
@@ -83,7 +89,9 @@ table td.n, th.n { width: 40%; text-align: left; }
 
 .progress { background-color: white; }
 
-.error { dispplay: none; color: red; }
+.error { display: none; color: red; }
+
+.reset { display: none; float: right; }
 
 #put_submit { font-size: 140%; }
 #put_uploaddone { font-size: 120%; font-weight: bold; }
@@ -97,5 +105,6 @@ span.btc { font-family: monospace; border: 1px solid black; background: white; p
 img.btc { display: block; margin: auto; }
  h2 { font-size: 120%; font-weight: bold; line-height: 1em; margin: 1.5em 0 1em;}
 
-li { font-size: 80%; }
+form.get li { font-size: 80%; }
 
+#get_decrypting table { margin: 0; }

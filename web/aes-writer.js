@@ -38,7 +38,7 @@ function AesWriter(innerWriter)
       salt.view.setUint8(n, 0x08);
 
     // fake pw
-    var pw = "plok flok";
+    var pw = put_passphrase();
 
     // transform pw + salt => key + mac initial value + verify code
     var forgeKey = forge.pkcs5.pbkdf2(pw,

@@ -1,21 +1,27 @@
 
+var MAX_METHOD2 = 1024 * 1024 * 1024;
+
 $(function() {
     $('form.get').submit(function() {
         // grab passphrase, normalize spaces
         // and convert to filename
-        var file = getName($('#get_passphrase').val()
-                .replace(/\s+/g,' '));
+        var file = getName(get_passphrase());
 
 
         // see if the file exists
         $.ajax(file, {
             method: 'HEAD',
-            success: function() { 
+            success: function(res, status, xhr) { 
                 $('body').removeClass('get_notfound'); 
                 $('body').addClass('get_found'); 
 
                 $('a#get_directdownload')[0].href = file;
                 $('a#get_decrypt')[0].href = file;
+                $('textarea').prop('disabled',true);
+
+                var size = xhr.getResponseHeader("Content-Length");
+                if (size > MAX_METHOD2)
+                    $('#get_method2').html('<p>The file is to large to decrypt in your browser');
             },
 
             error: function() { 
@@ -38,6 +44,10 @@ $(function() {
     })
 })
 
+function get_passphrase()
+{
+  return $('#get_passphrase').val().replace(/\s+/g,' ').trim();
+}
 
 function startDownload(file)
 {
@@ -77,7 +87,7 @@ function startDownload(file)
 function startDecrypt(blob)
 {
     $('body').addClass('get_decrypting');
-    var $t = $('#get_decrypting table');
+    var $t = $('#get_decrypting');
 
     zip.createReader(new zip.BlobReader(blob), function(zipReader) {
         zipReader.getEntries(function(entries) {
@@ -88,12 +98,12 @@ function startDecrypt(blob)
                 var nm = $('<td class="n">').text(entries[n].filename);
                 var sz = $('<td class="s">').text(formatSize(entries[n].uncompressedSize));
 
-                entries[n].row = $('<tr>')
-                        .append(nm)
-                        .append(sz)
-                        .append('<td class="s speed">')
-                        .append('<td class="s progr">')
-                        .append('<td class="s eta">');
+                entries[n].row = $('<table>').append($('<tbody>').append($('<tr>')
+                      .append(nm)
+                      .append(sz)
+                      .append('<td class="s speed">')
+                      .append('<td class="s progr">')
+                      .append('<td class="s eta">')));
                 $t.append(entries[n].row);
             }
             var count = 0;
@@ -130,7 +140,6 @@ function startDecrypt(blob)
             {
                 if (n++ % 50 == 0)
                 {
-                    console.log(started, data, entries[count].compressedSize);
                     updateProgressTable(entries[count].row,
                         started, data / entries[count].compressedSize, data);
                 }

@@ -28,7 +28,7 @@
 versionmade = 51;
 versionneeded = 20;
 
-zipoptions = {zip64:false, aes:false};
+zipoptions = {zip64:false, aes:true};
 if (zipoptions.zip64) versionneeded = 45;
 if (zipoptions.aes) versionneeded = 51;
 (function(obj) {
@@ -43,7 +43,7 @@ if (zipoptions.aes) versionneeded = 51;
   var ERR_WRITE_DATA = "Error while writing file data.";
   var ERR_READ_DATA = "Error while reading file data.";
   var ERR_DUPLICATED_NAME = "File already exists.";
-  var CHUNK_SIZE = 5120 * 1024;
+  var CHUNK_SIZE = 1024 * 1024;
 
   var TEXT_PLAIN = "text/plain";
 
@@ -173,6 +173,7 @@ if (zipoptions.aes) versionneeded = 51;
 
   function BlobReader(blob) {
     var that = this;
+    
 
     function init(callback) {
       that.size = blob.size;
@@ -543,8 +544,8 @@ if (zipoptions.aes) versionneeded = 51;
     entry.lastModDateRaw = data.view.getUint32(index + 6, true);
     entry.lastModDate = getDate(entry.lastModDateRaw);
     if ((entry.bitFlag & 0x01) === 0x01) {
-      onerror(ERR_ENCRYPTED);
-      return;
+      //onerror(ERR_ENCRYPTED);
+      //return;
     }
     if (centralDirectory || (entry.bitFlag & 0x0008) != 0x0008) {
       entry.crc32 = data.view.getUint32(index + 10, true);
@@ -599,11 +600,18 @@ if (zipoptions.aes) versionneeded = 51;
         }
         readCommonHeader(that, data, 4, false, onerror);
         dataOffset = that.offset + 30 + that.filenameLength + that.extraFieldLength;
+        var rdr = reader;
+        //if (that.compressionMethod === 99)
+        {
+            console.log('Using AES reader');
+            rdr = new AesReader(reader, that.compressedSize);
+
+        }
         writer.init(function() {
           if (that.compressionMethod === 0)
-            copy(that._worker, inflateSN++, reader, writer, dataOffset, that.compressedSize, checkCrc32, getWriterData, onprogress, onreaderror, onwriteerror);
+            copy(that._worker, inflateSN++, rdr, writer, dataOffset, that.compressedSize, checkCrc32, getWriterData, onprogress, onreaderror, onwriteerror);
           else
-            inflate(that._worker, inflateSN++, reader, writer, dataOffset, that.compressedSize, checkCrc32, getWriterData, onprogress, onreaderror, onwriteerror);
+            inflate(that._worker, inflateSN++, rdr, writer, dataOffset, that.compressedSize, checkCrc32, getWriterData, onprogress, onreaderror, onwriteerror);
         }, onwriteerror);
       }, onreaderror);
     };
