@@ -26,11 +26,18 @@ function getName(phrase) {
 
 // create and show cryptographically secure phrase
 function generatePassPhrase() {
+  
   var s = new Uint16Array(WORDCOUNT);
-  crypto.getRandomValues(s);
   var phrase_words = [];
+
+  var bytes = forge.random.getBytesSync(2*WORDCOUNT);
   for(var n=0; n < WORDCOUNT; n++)
-    phrase_words.push(words[s[n] & 0x7FF]);
+  {
+    var idx = (bytes.charCodeAt(n*2) & 0x7) << 8;
+    idx = idx | bytes.charCodeAt(n*2+1) & 0xFF;
+    
+    phrase_words.push(words[idx]);
+  }
 
   var phrase = phrase_words.join(' ');
   $('#put_passphrase').text(phrase);

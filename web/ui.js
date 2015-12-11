@@ -9,7 +9,7 @@ $(function() {
   if (typeof($('input[type="file"]')[0].files) === 'undefined' 
       || !window.Worker
       || !window.Uint8Array
-      || !window.crypto)
+      )
   {
     $('body').html('<p>Your browser is too old for this site.' +
         'Please update your browser. Support is needed for ' +
