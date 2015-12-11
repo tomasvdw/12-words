@@ -23,7 +23,7 @@
     <script src="lib/z-worker.js"></script>
     <script src="aes-writer.js"></script>
     <script src="aes-reader.js"></script>
-    <script src="lib/forge.bundle.js"></script>
+    <script src="lib/forge.min.js"></script>
     <script src="words.js"></script>
 
     <!-- STYLE -->
@@ -47,7 +47,6 @@
           action="#"
           method="post"
           enctype="multipart/form-data">
-      <a class="reset" href="javascript:location.reload()">[reset]</a>
       <p class="error"></p>
 
       <div id="put_selectfiles">
@@ -111,6 +110,7 @@
       </div>
 
 
+      <a class="reset" href="javascript:location.reload()">[reset]</a>
     </form>
 
     <form class="get" action="#">
@@ -160,6 +160,7 @@
         </div>
 
       </div>
+      <a class="reset" href="javascript:location.reload()">[reset]</a>
     </form>
     <form class="pay">
       <p>If you are transferring only small files for personal use, you can use this service for free.
