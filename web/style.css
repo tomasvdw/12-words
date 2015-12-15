@@ -7,9 +7,11 @@ html {
   line-height: 1.5rem;
 }
 
-textarea, pre, .s  {
-  font-family: Consolas, Liberation Mono, Menlo, Courier, monospace;
+textarea, pre, .s {
   font-size: 0.833rem;
+}
+textarea, pre, .s, h1, nav ul li {
+  font-family: Courier New, Consolas, Liberation Mono, Menlo, Courier, monospace;
 }
 
 *, *:before, *:after {
@@ -158,8 +160,9 @@ pre { font-size: 120%; padding: 5px; margin-top: 2px;
 h2 {margin: 0;}
 header { max-width: 78ch; margin:auto; }
 nav ul li { padding: 4px 0; width: 25%; display:inline-block; 
-  font-family: monospace; font-size: 120%; }
+  font-size: 120%; }
 nav li a { display: inline-block; width:100%; }
+nav li { margin-bottom: 1em; }
 form { display: none; }
 
 .put form.put { display: block; }
