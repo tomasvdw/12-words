@@ -1,12 +1,12 @@
 
-var MAX_METHOD2 = 1024 * 1024 * 1024;
+var MAX_METHOD2 = 512 * 1024 * 1024;
 
 $(function() {
     $('form.get').submit(function() {
+        
         // grab passphrase, normalize spaces
         // and convert to filename
         var file = getName(get_passphrase());
-
 
         // see if the file exists
         $.ajax(file, {
@@ -21,7 +21,10 @@ $(function() {
 
                 var size = xhr.getResponseHeader("Content-Length");
                 if (size > MAX_METHOD2)
-                    $('#get_method2').html('<p>The file is to large to decrypt in your browser');
+                {
+                    $('#get_method2').html(
+                        '<p>The file is too large to decrypt in your browser');
+                }
             },
 
             error: function() { 
@@ -98,13 +101,13 @@ function startDecrypt(blob)
                 var nm = $('<td class="n">').text(entries[n].filename);
                 var sz = $('<td class="s">').text(formatSize(entries[n].uncompressedSize));
 
-                entries[n].row = $('<table>').append($('<tbody>').append($('<tr>')
-                      .append(nm)
-                      .append(sz)
+                entries[n].row = $('<table class="progress">').append($('<tr>')
+                      .append(nm.clone())
+                      .append(sz.clone())
                       .append('<td class="s speed">')
                       .append('<td class="s progr">')
-                      .append('<td class="s eta">')));
-                $t.append(entries[n].row);
+                      .append('<td class="s eta">'));
+                $('table', $t).append($('<tr>').append(nm).append(sz));
             }
             var count = 0;
             var started = new Date();
@@ -119,15 +122,16 @@ function startDecrypt(blob)
                 anchor.href = URL.createObjectURL(data);
                 anchor.download = name;
 
-		if (navigator.msSaveOrOpenBlob)
-		{
-			anchor.onclick = function() {
-				navigator.msSaveOrOpenBlob(data, name || "download")
-				return false;
-			}
-		}
+                if (navigator.msSaveOrOpenBlob)
+                {
+                    // IE download handling
+                    anchor.onclick = function() {
+                        navigator.msSaveOrOpenBlob(data, name || "download")
+                        return false;
+                    }
+                }
 
-                tdname.append(anchor);
+                $('ul', $t).append($('<li>').append(anchor));
 
                 $('td.progr', entries[count].row).attr('colspan','3').text('done');
                 $('td.eta', entries[count].row).remove();
@@ -139,6 +143,7 @@ function startDecrypt(blob)
                 else
                 {
                     zipReader.close();
+                    $('table.progress', $t).remove();
                     $('#get_decryptiondone').show();
                     $('#get_decrypting p').hide();
                 }
@@ -155,6 +160,12 @@ function startDecrypt(blob)
 
             function decryptNext()
             {
+                $('table.files tr:eq()', $t).remove();
+
+                $('table.progress', $t).remove();
+                $('ul', $t).after(entries[count].row);
+
+
                 entries[count].getData(new zip.BlobWriter(),
                             fileDone,
                             fileProgress);

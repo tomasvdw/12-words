@@ -237,7 +237,7 @@ thead,tbody,tr { background-attachment:fixed !important; }
 table, tbody {width: 100%; }
 table td, th { text-align: right; }
 table td.s, th.s { text-align: right; font-family: monospace; font-size:80%; }
-table.progress td { width: 20%; }
+Xtable.progress td { width: 20%; }
 table td.n, th.n { text-align: left; }
 table.progress td.n { width: 40%; }
 
@@ -254,6 +254,6 @@ span.btc { font-family: monospace; border: 1px solid black; background: white; p
 img.btc { display: block; margin: auto; }
  h2 { font-size: 120%; font-weight: bold; line-height: 1em; margin: 1.5em 0 1em;}
 
-form.get li { font-size: 80%; }
+ul.notes li { font-size: 80%; }
 
-#get_decrypting table { margin: 0; }
+
