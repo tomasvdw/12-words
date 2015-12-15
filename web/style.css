@@ -13,6 +13,7 @@ textarea, pre, .s {
 textarea, pre, .s, h1, nav ul li {
   font-family: Courier New, Consolas, Liberation Mono, Menlo, Courier, monospace;
 }
+nav ul li { font-weight: bold; }
 
 *, *:before, *:after {
   box-sizing: border-box;
@@ -237,7 +238,8 @@ table, tbody {width: 100%; }
 table td, th { text-align: right; }
 table td.s, th.s { text-align: right; font-family: monospace; font-size:80%; }
 table.progress td { width: 20%; }
-table td.n, th.n { width: 40%; text-align: left; }
+table td.n, th.n { text-align: left; }
+table.progress td.n { width: 40%; }
 
 .progress { background-color: white; }
 
