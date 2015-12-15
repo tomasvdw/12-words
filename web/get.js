@@ -119,6 +119,14 @@ function startDecrypt(blob)
                 anchor.href = URL.createObjectURL(data);
                 anchor.download = name;
 
+		if (navigator.msSaveOrOpenBlob)
+		{
+			anchor.onclick = function() {
+				navigator.msSaveOrOpenBlob(data, name || "download")
+				return false;
+			}
+		}
+
                 tdname.append(anchor);
 
                 $('td.progr', entries[count].row).attr('colspan','3').text('done');

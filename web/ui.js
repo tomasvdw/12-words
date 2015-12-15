@@ -6,12 +6,6 @@
 $(function() {
     
   // check some browser support
-  if (!window.crypto) {
-    $('#get_method2').html('<p>Your browser is to old to decrypt in browser.' +
-        'Please update your browser. Support is needed for ' +
-        'Webworkers, File API and Typed Arrays and crypto.');
-
-  }
   if (typeof($('input[type="file"]')[0].files) === 'undefined' 
       || !window.Worker
       || !window.Uint8Array
@@ -151,3 +145,15 @@ if (!ArrayBuffer.prototype.slice) {
         return result;
     };
 }
+
+
+// Implement for IE10
+if (!Uint8Array.prototype.slice) {
+    //Returns a new ArrayBuffer whose contents are a copy of this ArrayBuffer's
+    //bytes from `begin`, inclusive, up to `end`, exclusive
+    Uint8Array.prototype.slice = function (begin, end) {
+	return new Uint8Array(this.buffer.slice(begin,end));
+    };
+}
+
+
