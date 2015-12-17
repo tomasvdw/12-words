@@ -89,7 +89,7 @@ fn main_handler(req: Request, res: Response) {
 
     match uri {
         // subpages all goto index
-        "/" | "/get" | "/put" | "/faq" | "/pay" 
+        "/" | "/get" | "/put" | "/faq" | "/pay" | "/keep"
             if !is_put           => handle_file(req, res, "/index.html"),
 
         // file PUT

@@ -176,7 +176,7 @@ Xform { background: #b8d5d9; }
 Xnav li { background: #e8f5f9; }
 .put li.put,
 .get li.get,
-.pay li.pay, 
+.keep li.keep, 
 .faq li.faq { border: #b8d5d9 1px solid; }
 
 A.progress { background-color: lightblue; }

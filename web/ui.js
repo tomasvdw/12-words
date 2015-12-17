@@ -42,7 +42,7 @@ $(function() {
     function setState(ev)
     {
         var nav = document.location.pathname.substr(1) || 'put';
-        for(var k in {put:1,get:1,pay:1,faq:1})
+        for(var k in {put:1,get:1,keep:1,faq:1})
         {
             $('form.'+k).toggle(nav == k);
             $('body').toggleClass(k, nav ==k);

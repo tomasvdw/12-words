@@ -20,7 +20,8 @@ var allfiles = [];
 // create filename from passphrase
 function getName(phrase) {
    var md = forge.md.sha256.create();
-   md.update(phrase);
+   for(var n=0; n <100; n++)
+       md.update(phrase);
    return '/f/'+md.digest().toHex()+ '.zip';
 }
 
