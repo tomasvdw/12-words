@@ -106,7 +106,7 @@ fn main_handler(req: Request, res: Response) {
 }
 
 fn main() {
-    let _listening = hyper::Server::http("0.0.0.0:3000")
+    let _listening = hyper::Server::http("0.0.0.0:80")
         .unwrap()
         .handle(main_handler);
 

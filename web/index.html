@@ -12,21 +12,290 @@
     <meta   name="viewport" 
             content="width=device-width, initial-scale=1.0">
 
-    <link   rel="stylesheet" href="style.css">
+    <style>
+/* ADAPTED FROM writ */
+html {
+  font-family: Palatino, Georgia, Lucida Bright, Book Antiqua, serif;
+  font-size: 16px;
+  line-height: 1.5rem;
+}
+
+textarea, pre, .s {
+  font-size: 0.833rem;
+}
+textarea, pre, .s, h1, nav ul li, td.r {
+  font-family: Courier New, Consolas, Liberation Mono, Menlo, Courier, monospace;
+}
+nav ul li { font-weight: bold; }
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, th { font-weight: normal; }
+
+h1 { font-size: 2.488em; }
+h2 { font-size: 2.074em; }
+small { font-size: 0.833em; }
+
+h1, h2, h3 { line-height: 3rem; }
+
+p, ul, ol, dl, table, blockquote, pre, h1, h2, h3, h4, h5, h6 {
+  margin: 1.5rem 0 0;
+}
+ul ul { margin: 0; }
+
+hr {
+  margin: 0;
+  border: none;
+  padding: 1.5rem 0 0;
+}
+
+/* Accounting for borders */
+table {
+  line-height: calc(1.5rem - 1px);
+  margin-bottom: -1px;
+}
+pre {
+  margin-top: calc(1.5rem - 1px);
+  margin-bottom: -1px;
+}
+
+/* Colors */
+
+body { color: #222; }
+code, pre, samp, kbd { color: #111; }
+a, nav a:visited { color: #00e; }
+a:visited { color: #60b; }
+mark { color: inherit; }
+
+code, pre, samp, thead, tfoot { background-color: rgba(0, 0, 0, 0.05); }
+mark { background-color: #fe0; }
+
+main aside, blockquote, ins { border: solid rgba(0, 0, 0, 0.05); }
+pre, code, samp { border: solid rgba(0, 0, 0, 0.1); }
+th, td { border: solid #dbdbdb; }
+
+/* Layout */
+
+body { margin: 1.5rem 1ch; }
+
+body > header { text-align: center; }
+
+main, body > footer {
+  display: block; /* Just in case */
+  max-width: 78ch;
+  margin: auto;
+}
+
+main figure, main aside {
+  float: right;
+  margin: 1.5rem 0 0 1ch;
+}
+
+main aside {
+  max-width: 26ch;
+  border-width: 0 0 0 0.5ch;
+  padding: 0 0 0 0.5ch;
+}
+
+/* Copy blocks */
+
+blockquote {
+  margin-right: 3ch;
+  margin-left: 1.5ch;
+  border-width: 0 0 0 0.5ch;
+  padding: 0 0 0 1ch;
+}
+
+pre {
+  border-width: 1px;
+  border-radius: 2px;
+  padding: 0 0.5ch;
+  overflow-x: auto;
+}
+pre code {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+  white-space: inherit;
+}
+
+img { max-width: 100%; }
+
+/* Lists */
+
+ul, ol, dd { padding: 0 0 0 3ch; }
+dd { margin: 0; }
+
+a { outline: 0; }
+
+dd { padding: 0; margin: 1em 0 2em;}
+dt { font-weight: bold; }
+
+ul > li { list-style-type: disc; }
+
+
+nav ul {
+  padding: 0;
+  list-style-type: none;
+}
+nav ul li {
+  display: inline;
+  padding-left: 1ch;
+  white-space: nowrap;
+}
+nav ul li:first-child { padding-left: 0; }
+
+/* Tables */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+}
+
+th, td {
+  border-width: 1px;
+  padding: 5px 5px;
+}
+
+/* Copy inline */
+
+a { text-decoration: none; }
+
+
+
+
+textarea { width: 98%; padding: 5px; }
+pre { font-size: 140%; padding: 5px; margin-top: 2px;
+      white-space: pre-wrap; }
+h2 {margin: 0;}
+header { max-width: 78ch; margin:auto; }
+nav ul li { padding: 4px 0; width: 25%; display:inline-block; 
+  font-size: 120%; }
+nav li a { display: inline-block; width:100%; }
+nav li { margin-bottom: 1em; }
+form { display: none; }
+
+.put form.put { display: block; }
+
+table.files tr { background-color: #a1cd73; }
+table.files th { background-color: #4faa92; }
+
+/* colors */
+.put li.put,
+.get li.get,
+.keep li.keep, 
+.faq li.faq { border: #b8d5d9 1px solid; }
+
+A.progress { background-color: lightblue; }
+pre,textarea { background-color: orange; }
+
+textarea { font-size:130%; }
+
+body { padding-bottom: 2em; }
+
+thead,tbody,tr { background-attachment:fixed !important; }
+
+table#keep_retention td { text-align: left; border:none; }
+table#keep_retention .rr { text-align: right; }
+table#keep_retention .ad { vertical-align: top; }
+table#keep_retention input { width: 4em; }
+table#keep_retention pre { font-size:100%; background-color: #bbb;}
+
+/* PUT screen phases */
+.uploading      #put_selectfiles  { display: none; }
+                #put_filelist     { display: none; }
+.files_selected #put_filelist     { display: inherit; }
+
+.files_selected      .reset { display: inherit; }
+                #put_doupload     { display: none; }
+.files_selected #put_doupload     { display: inherit; }
+.uploading      #put_doupload     { display: none; }
+.uploading_done #put_doupload     { display: none; }
+.uploading      .rm     { display: none; }
+.uploading_done .rm     { display: none; }
+
+                #put_progress     { display: none; }
+.uploading      #put_progress     { display: inherit; }
+.uploading_done #put_progress     { display: none; }
+
+                #put_retrieveinfo { display: none; }
+.files_selected #put_retrieveinfo { display: inherit; }
+.uploading      #put_retrieveinfo { display: inherit; }
+.uploading_done #put_retrieveinfo { display: inherit; }
+
+                #put_uploaddone   { display: none; }
+.uploading_done #put_uploaddone   { display: inherit; }
+
+
+/* GET screen phases */
+                #get_notfound     {display: none; }
+.get_notfound   #get_notfound     {display: inherit; }
+
+
+                #get_found        {display: none; }
+.get_found      #get_found        {display: inherit; }
+.get_found      #get_input p      {display: none; }
+
+.get_found      .reset { display: inherit; }
+
+                 #get_downloading   {display: none; }
+.get_downloading #get_downloading   {display: inherit; }
+
+.get_downloading #get_decryptbutton {display: none; }
+.get_decrypting #get_decryptbutton {display: none; }
+
+                #get_decrypting    {display: none; }
+.get_decrypting #get_decrypting    {display: inherit; }
+
+                #get_decryptiondone { display: none; }
+
+/* KEEP screen phases */
+                #keep_notfound     {display: none; }
+.keep_notfound   #keep_notfound     {display: inherit; }
+
+
+                #keep_found        {display: none; }
+.keep_found      #keep_found        {display: inherit; }
+.keep_found      #keep_input p      {display: none; }
+#keep_retention     {display: none; }
+
+.keep_found      .reset { display: inherit; }
+
+table, tbody {width: 100%; }
+table td, th { text-align: right; }
+table td.s, th.s { text-align: right; font-family: monospace; font-size:80%; }
+table td.n, th.n { text-align: left; }
+table.progress td.n { width: 40%; }
+
+.progress { background-color: white; }
+
+.error { display: none; color: red; }
+
+.reset { display: none; float: right; }
+
+#put_submit { font-size: 140%; }
+#put_uploaddone .large { font-size: 120%; font-weight: bold; }
+
+span.btc { font-family: monospace; border: 1px solid black; background: white; padding: 3px 10px;}
+img.btc { display: block; margin: auto; }
+ h2 { font-size: 120%; font-weight: bold; line-height: 1em; margin: 1.5em 0 1em;}
+
+ul.notes li { font-size: 80%; }
+
+    </style>
 
     <script src="lib/jquery-1.11.3.min.js"></script>
-
     <script src="lib/zip.js"></script>
-    <script src="lib/deflate.js"></script>
-    <script src="lib/zip-ext.js"></script>
-    <script src="lib/mime-types.js"></script>
-    <script src="lib/z-worker.js"></script>
-    <script src="aes-writer.js"></script>
-    <script src="aes-reader.js"></script>
     <script src="lib/forge.min.js"></script>
+    <script src="12-words.js"></script>
+    <script src="aes.js"></script>
     <script src="words.js"></script>
-
-    <!-- STYLE -->
+    <script defer async src="lib/aws-sdk-2.2.23.min.js"></script>
+    <script defer async src="lib/bjs.js"></script>
+    <script defer async src="lib/qrcode.min.js"></script>
   </head>
   <body class="put">
     <header>
@@ -50,7 +319,7 @@
       <p class="error"></p>
 
       <div id="put_selectfiles">
-        <p>Select local files you want to transfer:
+        <p>Select or drop local files you want to transfer:
         <p>
         <input autofocus multiple 
            autocomplete="off"
@@ -88,17 +357,24 @@
         </table>  
       </div>
 
-      <p id="put_uploaddone">
-      Upload completed
-      </p>
+      <div id="put_uploaddone">
+      
+      <p class="large">
+        Upload completed
+      <p>
+        The files will remain on the server for 12 hours. You
+        can <a class="internal" href="/keep">pay to keep them longer</a>
+ 
+
+      </div>
 
       <div id="put_retrieveinfo">
         <p>
         Passphrase:
         <pre id="put_passphrase"></pre>
         <p>
-        After uploading the file, you should instruct the receiver to go to
-        <a href="/get">https://filetransferencrypted.com/get</a> 
+        After uploading the file, the recipient can go to
+        <a href="/get">https://12-words.com/get</a> 
         and type in the passphrase. The passphrase should be 
         communicated over a secure channel, for instance:
         <ul>
@@ -166,14 +442,45 @@
     </form>
     <form class="keep">
       <p class="error"></p>
-      <div id="get_input">
+      <div id="keep_input">
         <p>All files will be kept on the server for at least 12 hours. To retain files longer
-          for a small fee, enter the passphrase of the file:
-        <textarea id="get_passphrase" autocomplete="off" autofocus></textarea>
+        for a small fee, enter the passphrase of the file:</p>
+        <textarea id="keep_passphrase" autocomplete="off" autofocus></textarea>
         <p>
         <input type="submit" value="Find Files" />
       </div>
-      <p>
+      <p id="keep_notfound">
+      No files found with this passphrase
+      <div id="keep_found">
+        <p id="keep_searching">Searching retention...
+        <table id="keep_retention">
+          <tr>
+            <td class="pm">Payments found:</td>
+            <td class="r pm_a">0 mBTC</td>
+          </tr>
+          <tr>
+            <td class="ed">The upload will be removed after:</td>
+            <td class="r ed_a">23-12-2015 09:47:30
+          </tr>
+          <tr>
+            <td class="er">Extra rention can be bought for:</td>
+            <td class="r er_a">5 mBTC + 1 mBTC/GB/month
+          </tr>
+          <tr>
+            <td class="em rr">Extra months:</td>
+            <td class="r em_a"><input type="number" min="1" max="36" id="keep_months" value="1" /></td>
+          </tr>
+          <tr>
+            <td class="pr rr">Price:</td>
+            <td class="r pr_a">0 mBTC</td>
+          </tr>
+          <tr>
+            <td class="ad rr"><span>Payments can be transferred to:</span><br/><pre class="addr"></pre></td>
+            <td class="qr"></td>
+          </tr>
+
+        </table>
+      </div>
       <a class="reset" href="javascript:location.reload()">[reset]</a>
     </form>
     <form class="faq">
@@ -182,7 +489,7 @@
         <dd>This is a service to transfer files between two computers securely using client-side encryption. The computers need only a modern Web Browser and Internet access.
 
         <dt>What is "client-side encryption"?
-        <dd>Client-side encryption means that the files that you are transferring  are encrypted on your own computer before they are send over the network. 
+        <dd>Client-side encryption means that the files are encrypted on your own computer before they are send over the network. 
 
         <p>
         This means the data is secure not only from computers sniffing the network, but also unreadable by us, by our hosting provider or by anyone who can gain access to our servers.
@@ -206,8 +513,6 @@
         <p>
         These are high security standards, and cannot be decrypted by any means now, or in the near future.
 
-        <p>Please do not take our word for it, and do your own research.
-
 
         <dt>Are the filenames encrypted too?
         <dd>No. Filenames and sizes are stored unencrypted. Only file content is encrypted.
@@ -230,27 +535,21 @@
         <dt>How can trust this service? How do I know the files are really encrypted?
 
         <dd>This service is Open Source, and the source can be found on 
-        <a href="https://github.com/tomasvdw/filetransferencrypted">GitHub</a>
+        <a href="https://github.com/tomasvdw/12-words">GitHub</a>
 
         <p>
-        The site is packed in a single file, so you can verify the SHA1 key of 
-        this file with the key published on GitHub
 
         <dt>I have another question...
-        <dd>You can contact us at <a href="mailto:info@filetransferencrypted.com">info@filetransferencrypted.com</a>
+        <dd>You can contact us at <a href="mailto:info@12-words.com">info@12-words.com</a>
         <p>
         If you find bug, you can report it on 
-        <a href="https://github.com/tomasvdw/filetransferencrypted">GitHub</a>
+        <a href="https://github.com/tomasvdw/12-words">GitHub</a>
 
 
 
       </dl>
     </form>
     </main>
-    <script src="ui.js"></script>
-    <script src="put.js"></script>
-    <script src="get.js"></script>
 
-    <!-- SCRIPTS -->
   </body>
 </html>

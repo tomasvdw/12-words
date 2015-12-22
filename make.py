@@ -24,8 +24,10 @@ content = re.sub(r"\n[^\n]+script src[^\n]+", "", content, 0, flags=re.MULTILINE
 content = re.sub(r"\n[^\n]+stylesheet\" href[^\n]+", "", content, 0, flags=re.MULTILINE)
 
 
+with open("web/all.js", "w"):
+
 content = content.replace("<!-- SCRIPTS -->", 
-  "<script>\n"+scontent+"</script>")
+  '<script src="all.js"></script>')
 
 content =content.replace("<!-- STYLE -->", 
    "<style>\n"+ccontent+"</style>")
