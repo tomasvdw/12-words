@@ -18,6 +18,7 @@ html {
   font-family: Palatino, Georgia, Lucida Bright, Book Antiqua, serif;
   font-size: 16px;
   line-height: 1.5rem;
+  min-height: 100%; 
 }
 
 textarea, pre, .s {
@@ -378,8 +379,8 @@ ul.notes li { font-size: 80%; }
         and type in the passphrase. The passphrase should be 
         communicated over a secure channel, for instance:
         <ul>
-          <li>By phone <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
-          <li>By private messaging <small>(using <a href="https://whispersystems.com">Open Whisper</a>)</small>
+          <li>By phone <small></small>
+          <li>By private messaging <small>(using <a href="https://whispersystems.org">Open Whisper</a>)</small>
           <li>By encrypted email
           <li>Face-to-face
         </ul>
@@ -459,11 +460,11 @@ ul.notes li { font-size: 80%; }
             <td class="r pm_a">0 mBTC</td>
           </tr>
           <tr>
-            <td class="ed">The upload will be removed after:</td>
+            <td class="ed">The upload will be removed shortly after:</td>
             <td class="r ed_a">23-12-2015 09:47:30
           </tr>
           <tr>
-            <td class="er">Extra rention can be bought for:</td>
+            <td class="er">Extra retention can be bought for:</td>
             <td class="r er_a">5 mBTC + 1 mBTC/GB/month
           </tr>
           <tr>
@@ -476,7 +477,10 @@ ul.notes li { font-size: 80%; }
           </tr>
           <tr>
             <td class="ad rr"><span>Payments can be transferred to:</span><br/><pre class="addr"></pre></td>
-            <td class="qr"></td>
+            <td rowspan="2" class="qr"></td>
+          </tr>
+          <tr>
+            <td class="not">NOTE: Use at your own risk. We do not offer refunds in case of missing or failing files, as we have no way to verify claims.</td>
           </tr>
 
         </table>
@@ -537,7 +541,15 @@ ul.notes li { font-size: 80%; }
         <dd>This service is Open Source, and the source can be found on 
         <a href="https://github.com/tomasvdw/12-words">GitHub</a>
 
-        <p>
+        <dt>How does it work?
+        <dd>
+          12-words is a client-only application. The website is currently served directly from
+          Amazon CloudFront, and the files are stored on S3.
+
+          <p>
+          The client application uses the
+          <a href="https://github.com/digitalbazaar/forge">Forge</a> library for encryption (thanks!), the <a href="https://github.com/gildas-lormeau/zip.js">Zip.js</a> library for compression (thanks!) and the  <a href="https://github.com/bitcoinjs/bitcoinjs-lib">BitcoinJS</a> library for bitcoin-address generation (thanks!). 
+
 
         <dt>I have another question...
         <dd>You can contact us at <a href="mailto:info@12-words.com">info@12-words.com</a>

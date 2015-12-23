@@ -21,13 +21,15 @@ var AWS_BUCKET = '12-words-store';
 var AWS_ACCESS_KEY = 'AKIAI2G33EQDS7KV3C3A';
 var AWS_SECRET_ACCESS_KEY = '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';
 
-var AWS_REQUESTS = 8;
+var AWS_REQUESTS = 4;
 
 
 var PRICE_BASE = 0.005;
 var PRICE_GB_MONTH = 0.001;
 
 
+// diable logging by default
+//console.log = function() {};
 
 
 
@@ -120,6 +122,11 @@ function updateProgressTable(target, started, progress, bytes_done)
 
 }
 
+window.onerror = function(err)
+{
+    $('form:visible .error').text(err).show();
+    window.clearInterval(window.progressTimer );
+}
 
 // Displays error on current tab
 function setError(msg) {
@@ -427,14 +434,14 @@ var allfiles = [];
 
 /* Drag drop support */
 $(function() {
-    $('body').on(
+    $('html').on(
         'dragover',
         function(e) {
             e.preventDefault();
             e.stopPropagation();
         }
     )
-    $('body').on(
+    $('html').on(
         'dragenter',
         function(e) {
             e.preventDefault();
@@ -442,7 +449,7 @@ $(function() {
         }
     )
 
-    $('body').on(
+    $('html').on(
         'drop',
         function(e){
             if(e.originalEvent.dataTransfer){

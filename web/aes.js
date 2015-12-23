@@ -1,4 +1,8 @@
-
+/*
+ * Plumbing between Zip.JS and Forge.
+ * Acts as a reader/writer for zip.js
+ * Uses forge for actual encryption
+ */
 
 
 
@@ -20,17 +24,16 @@ function AesWriter(innerWriter)
 
   function initAes()
   {
-    // fake salt
-    salt = getDataHelper(16);
-    for(var n = 0; n < 16; n ++)
-      salt.view.setUint8(n, 0x08);
+    // random salt
+    salt = forge.random.getBytesSync(16); 
+    console.log('salt', salt);
 
-    // fake pw
+    // extract pw
     var pw = put_passphrase();
 
     // transform pw + salt => key + mac initial value + verify code
     var forgeKey = forge.pkcs5.pbkdf2(pw,
-            forge.util.createBuffer(salt.array).data, 1000, 32 + 32 + 2 + 10);
+            salt, 1000, 32 + 32 + 2 + 10);
 
     key      = forgeKey.substr(0,32);
     maciv    = forgeKey.substr(32,32);
@@ -83,7 +86,7 @@ function AesWriter(innerWriter)
       console.log('initiing');
 
       // write header
-      innerWriter.writeUint8Array(salt.array, function() {});
+      innerWriter.writeUint8Array(string2Uint8(salt).array, function() {});
       innerWriter.writeUint8Array(string2Uint8(pwverify).array, function() {});
 
       started = true;
@@ -114,81 +117,7 @@ function AesWriter(innerWriter)
 AesWriter.prototype = new zip.Writer();
 AesWriter.prototype.constructor = AesWriter;
 
-function words2Array(wordarray, byte_idx, bytes)
-{
-  function getbyte(wordarray, byte_idx)
-  {
-    return (wordarray[byte_idx >>2] >> (8*((3-byte_idx) & 3))) & 0xFF;
-  }
-  var result = getDataHelper(bytes);
-  for(var v = byte_idx; v < byte_idx+bytes; v++)
-    result.view.setUint8(v-byte_idx, getbyte(wordarray, v));
 
-  return result;
-
-}
-
-function w2a(wordarray)
-{
-  if (!wordarray)
-    return getDataHelper(0).array;
-  else
-    return words2Array(wordarray.words, 0, wordarray.sigBytes).array;
-}
-
-function w2h(wordarray)
-{
-  var res = '';
-  var a = w2a(wordarray);
-  for(var n=0; n < a.length; n++)
-  {
-    if (a[n] < 16)
-      res+='0';
-    res += a[n].toString(16);
-  }
-  return res;
-}
-
-function a2h(array)
-{
-  var wordarray ={
-    words: array,
-    sigBytes: 16
-  };
-  return w2h(wordarray);
-}
-
-
-function incr_counter(x)
-{
-  for(var n=0; n < 4; n++)
-  {
-    if (x[n] < 0) x[n] = 0x100000000+ x[n];
-    if ((x[n] & 0xFF000000)>>>0 < 0xFF000000) {
-      x[n] += 0x01000000;
-      return;
-    }
-    x[n] -= 0xFF000000;
-
-    if ((x[n] & 0xFF0000)>>>0 < 0xFF0000) {
-      x[n] += 0x00010000;
-      return;
-    }
-    x[n] -= 0x00FF0000;
-
-    if ((x[n] & 0xFF00)>>>0 < 0xFF00) {
-      x[n] += 0x000100;
-      return;
-    }
-    x[n] -= 0x00FF00;
-
-    if ((x[n] & 0xFF)>>>0 < 0xFF) {
-      x[n] += 0x0001;
-      return;
-    }
-    x[n] -= 0x00FF;
-  }
-}
 
 function string2Uint8(s)
 {
