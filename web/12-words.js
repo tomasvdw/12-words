@@ -21,7 +21,7 @@ var AWS_BUCKET = '12-words-store';
 var AWS_ACCESS_KEY = 'AKIAI2G33EQDS7KV3C3A';
 var AWS_SECRET_ACCESS_KEY = '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';
 
-var AWS_REQUESTS = 12;
+var AWS_REQUESTS = 6;
 
 
 var PRICE_BASE = 0.005;
@@ -29,7 +29,7 @@ var PRICE_GB_MONTH = 0.001;
 
 
 // diable logging by default
-console.log = function() {};
+//console.log = function() {};
 
 
 
@@ -93,9 +93,9 @@ function updateProgressTable(target, started, progress, bytes_done)
     // fill progress bar
     if (progress != 0)
     {
-        var p1 = (progress*100);
-        var p2 = (progress*100)+3;
-        if (p2>100) p2 = 100;
+        var p1 = (progress*100)-3;
+        var p2 = (progress*100);
+        if (p1<0) p1 = 0;
         $(target).css('background', 'linear-gradient(to right, #b8d5d9 0%,#b8d5d9 '+p1+'%,#c8e5e9 '+p2+'%, #ffffff '+p2+'%,#ffffff 100%)');
     }
 
@@ -635,84 +635,58 @@ var upload_state =
 
 function startUploadProgress()
 {
-    var speed = 768 * 1024; // assume 1mb/sec
-    var min_secs = 5;
+    var speed = 768 * 1024; // assume 768kb/sec
 
-    if (upload_state.total_bytes / speed < min_secs)
-        speed = upload_state.total_bytes / min_secs;
+    var init_time = 2;
+    var upload_time = upload_state.total_bytes / speed;
 
-    // formula to estimate the percentage needed for initalization
-    // As if 5mb extra is needed
-    var stage1 = 7 * 1024 * 1024 / (upload_state.total_bytes + 2 * 1024 * 1024);
-    if (stage1 > .8) stage1 = .8;
-    if (stage1 < .1) stage1 = .1;
+    var started = upload_state.started.getTime()/1000;
 
-    // we'll go in 2.5 seconds to stage1/2
-    var est_bytes_done = 0;
-    var timer = 0.8;
+    upload_state.est_end = started + upload_time + init_time;
+    
+    var cur_progress = 0;
+    var timer = 0.6;
 
 
     window.progressTimer = window.setInterval(function() {
 
-        // estimate bytes_done based on compression ratio
-        var ratio = (upload_state.compressed/upload_state.encrypted);
+        
+        var now = (new Date()).getTime() / 1000;
 
-        var progress = (upload_state.uploaded * ratio) 
-            / upload_state.total_bytes;
-        var bytes_done = upload_state.total_bytes * progress;
-        if (isNaN(bytes_done)) bytes_done = 0;
-
-        if (upload_state.uploaded >0)
-        {
-            // adjust speed to actual upload speed
-            var time_taken = (new Date() - upload_state.upload_started ) /1000;
-            speed = bytes_done / time_taken;
-        }
+        var needed = upload_state.est_end - now;
+        if (needed < 2) needed = 2;
+        cur_progress += (1-cur_progress) * (timer/needed);
 
 
-        // now adjust speed for deviation from current progress bar
-        var adjusted_speed;
-        // Too fast?
-        if (est_bytes_done > bytes_done)
-        {
-            var r_todo = (upload_state.total_bytes - bytes_done)
-                var est_todo = (upload_state.total_bytes - est_bytes_done);
 
-            adjusted_speed = (speed ) * (est_todo / r_todo);
-
-        }
-        else if (est_bytes_done < bytes_done)
-        {
-            // TOO Slow
-            adjusted_speed = (speed ) / ((est_bytes_done/bytes_done)*(est_bytes_done/bytes_done));
-            adjusted_speed = (speed ) / ((est_bytes_done/bytes_done)*(est_bytes_done/bytes_done));
-        }
-        else
-            adjusted_speed = speed;
-
-
-        est_bytes_done += (adjusted_speed * timer);
 
 
         /*console.log('speed=', speed, 'adjusted_speed=', adjusted_speed,
           'bytes_done=', bytes_done, 'est_bytes_done=', est_bytes_done);
           */
-        if (bytes_done == 0)
-        {
-            updateProgressTable(
-                    $('#put_progress .progress'),
-                    0,
-                    est_bytes_done / upload_state.total_bytes,
-                    0); 
-        }
+        updateProgressTable(
+                $('#put_progress .progress'),
+                0,
+                cur_progress,
+                0); 
+
+        var eta = needed;
+        if (eta < 240)
+            eta = Math.round(eta) + ' s';
+        else if (eta < 60 * 120)
+            eta = Math.round(eta/60) + 'm';
         else
+            eta = Math.round(eta/3600) + 'h';
+
+        $('#put_progress .eta').text(eta);
+        if (upload_state.speed)
         {
-            updateProgressTable(
-                    $('#put_progress .progress'),
-                    upload_state.upload_started,
-                    est_bytes_done / upload_state.total_bytes,
-                    est_bytes_done);
+            $('#put_progress .eta').text(eta);
+            $('#put_progress .progr').text(rn(cur_progress*100) + ' %');
+            $('#put_progress .speed').text(formatSize(
+                        upload_state.speed)+'/s');
         }
+
 
     }, timer * 1000);
 }
@@ -720,13 +694,21 @@ function startUploadProgress()
 
 function updateProgress(state)
 {
-    // not currently used;
-    // we use the estimation above
-    return;
+    // incoming data, adjust speed
     var ratio = (upload_state.compressed/upload_state.encrypted);
+    var now = (new Date()).getTime() / 1000;
+    var up_started = upload_state.upload_started.getTime() / 1000;
+    upload_state.speed = (upload_state.uploaded * ratio) 
+        / (now - up_started);
 
-    var progress = (upload_state.uploaded * ratio) 
-        / upload_state.total_bytes;
+    var todo = upload_state.total_bytes - (upload_state.uploaded * ratio);
+    upload_state.est_end = now + (todo / upload_state.speed);
+
+
+    console.log('EST-SPEED=', upload_state.speed, 'EST-TODO=', 
+            upload_state.est_end - now);
+    return;
+
 
     updateProgressTable(
             $('#put_progress .progress'),
