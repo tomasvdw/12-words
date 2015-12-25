@@ -192,6 +192,7 @@ table.files th { background-color: #4faa92; }
 
 A.progress { background-color: lightblue; }
 pre,textarea { background-color: orange; }
+pre.addr { max-width: 50vw; }
 
 textarea { font-size:130%; }
 
@@ -285,6 +286,8 @@ img.btc { display: block; margin: auto; }
  h2 { font-size: 120%; font-weight: bold; line-height: 1em; margin: 1.5em 0 1em;}
 
 ul.notes li { font-size: 80%; }
+
+small.ftr { font-size: 70%; }
 
 .qr { width: 40%; }
 
@@ -503,15 +506,6 @@ ul.notes li { font-size: 80%; }
         <p>
         The only way to decrypt the files is using the passphrase which will not be send over the network.
 
-        <dt>What is the maximum size of the uploaded files?
-        <dd>
-        The total size of the files may not exceed 500GB after compression. 
-        <p>
-        However, the upload and encryption speed currently make files larger 
-        than a few GB rather painful.
-
-        <p>Encryption speed and upload speed will be improved in the near future.
-
         <dt>How secure is it?
         <dd>
         The files are encrypted using AES-256 encryption, with a 132-bits (BIP39) random passphrase.
@@ -523,6 +517,15 @@ ul.notes li { font-size: 80%; }
         <dt>Are the filenames encrypted too?
         <dd>No. Filenames and sizes are stored unencrypted. Only file content is encrypted.
 
+
+        <dt>What is the maximum size of the uploaded files?
+        <dd>
+        The total size of the files may not exceed 500GB after compression. 
+        <p>
+        However, the upload and encryption speed currently make files larger 
+        than a few GB rather painful.
+
+        <p>Encryption speed and upload speed will be improved in the near future.
 
         <dt>Can the files be modified by an attacker?
         <dd>If you use the decryption-in-the-browser feature you can be certain 
@@ -562,6 +565,8 @@ ul.notes li { font-size: 80%; }
 
 
       </dl>
+      <hr />
+      <small class="ftr">2015 Tomas | no rights reserved, no warranties given | Donations: 1DjWHThjjEF3iCscc41NCQwQnnGKtNLvQq</small>
     </form>
     </main>
 
