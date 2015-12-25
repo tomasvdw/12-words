@@ -21,7 +21,7 @@ var AWS_BUCKET = '12-words-store';
 var AWS_ACCESS_KEY = 'AKIAI2G33EQDS7KV3C3A';
 var AWS_SECRET_ACCESS_KEY = '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';
 
-var AWS_REQUESTS = 4;
+var AWS_REQUESTS = 12;
 
 
 var PRICE_BASE = 0.005;
@@ -29,7 +29,7 @@ var PRICE_GB_MONTH = 0.001;
 
 
 // diable logging by default
-//console.log = function() {};
+console.log = function() {};
 
 
 
@@ -510,6 +510,17 @@ function handleFileSelect(evt) {
 }
 
 function updateFileList() {
+    // dedup file list
+    for(var i = 0; i < allfiles.length; i++)
+    {
+        for(var j = i+1; j < allfiles.length; j++)
+            if (allfiles[i] && allfiles[j] &&
+                    allfiles[i].name.toLowerCase() === 
+                    allfiles[j].name.toLowerCase())
+            {
+                allfiles.splice(i,1);
+            }
+    }
 
     // css to show table et al
     $('form.put').toggleClass('files_selected', allfiles.length>0);
