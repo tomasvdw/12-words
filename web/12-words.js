@@ -29,7 +29,7 @@ var PRICE_GB_MONTH = 0.001;
 
 
 // diable logging by default
-//console.log = function() {};
+console.log = function() {};
 
 
 
